@@ -312,13 +312,7 @@ namespace :magento do
             deploy_jobs = nil
           end
 
-          # Workaround core-bug with multi-lingual deployments on Magento 2.1.3 and newer. In 2.1.3 and later each
-          # languages must be iterated individuall. See issue #72 for details
-          if _magento_version >= Gem::Version.new('2.1.3')
-            deploy_languages = fetch(:magento_deploy_languages)
-          else
-            deploy_languages = [fetch(:magento_deploy_languages).join(' ')]
-          end
+          deploy_languages = [fetch(:magento_deploy_languages).join(' ')]
 
           # Output is being checked for a success message because this command may easily fail due to customizations
           # and 2.0.x CLI commands do not return error exit codes on failure. See magento/magento2#3060 for details.
