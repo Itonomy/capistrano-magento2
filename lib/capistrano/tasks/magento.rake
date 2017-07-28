@@ -190,6 +190,14 @@ namespace :magento do
           end
         end
       end
+
+      task :config do
+        on primary fetch(:all) do
+          within release_path do
+            execute :magento, 'app:config:import', verbosity: Logger::INFO
+          end
+        end
+      end
       
       task :upgrade do
         on primary fetch(:magento_deploy_setup_role) do
