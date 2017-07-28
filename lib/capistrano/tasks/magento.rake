@@ -14,25 +14,6 @@ namespace :magento do
 
   namespace :cache do
    
-   
-    namespace :opcache do
-      desc 'clear opcache'
-      task :clear do
-        on release_roles :all do
-          within release_path do
-           opcache_file = "#{release_path}/pub/opcache_clear.php"
-           curl_options = "-s"
-           #if !http_auth_users.to_a.empty? then
-           # curl_options = curl_options + " --user " + http_auth_users[0][0] + ":" + http_auth_users[0][1]
-           #end
-
-           put "<?php opcache_reset(); ?>", opcache_file, :mode => 0644
-           run "curl #{curl_options} http://#{application}/opcache_clear.php && rm -f #{opcache_file}"
-          end
-        end
-      end
-    end
-   
     desc 'Flush Magento cache storage'
     task :flush do
       on cache_hosts do
@@ -74,6 +55,20 @@ namespace :magento do
       on cache_hosts do
         within release_path do
           execute :magento, 'cache:status'
+        end
+      end
+    end
+
+    namespace :opcache do
+      desc 'clear opcache'
+      task :clear do
+        on release_roles :all do
+          within release_path do
+            url = capture :magento, 'config:show web/unsecure/base_url', verbosity: Logger::INFO
+            code = "<?php opcache_reset(); ?>"
+            upload!(StringIO.new(code), "#{release_path}/pub/opcache_clear.php")
+            execute :curl, %W{#{url}/opcache_clear.php}
+          end
         end
       end
     end

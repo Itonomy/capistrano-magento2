@@ -59,6 +59,7 @@ namespace :deploy do
 
   task :published do
     invoke 'magento:cache:flush'
+    invoke 'magento:cache:opcache:clear'
     invoke 'magento:cache:varnish:ban'
     invoke 'magento:maintenance:disable' if fetch(:magento_deploy_maintenance)
   end
