@@ -85,7 +85,7 @@ namespace :magento do
 
       on release_roles :all do
         within release_path do
-          composer_flags = '--prefer-dist --no-interaction'
+          composer_flags = '--prefer-dist --no-interaction --no-progress --no-suggest'
 
           if fetch(:magento_deploy_production)
             composer_flags += ' --optimize-autoloader'
