@@ -14,17 +14,18 @@ namespace :magento do
 
   namespace :cache do
     namespace :opcache do
-    desc 'clear opcache'
-    task :clear_cache, :roles => :app do
-     opcache_file = "#{release_path}/pub/opcache_clear.php"
-     curl_options = "-s"
-     if !http_auth_users.to_a.empty? then
-      curl_options = curl_options + " --user " + http_auth_users[0][0] + ":" + http_auth_users[0][1]
-     end
+      desc 'clear opcache'
+      task :clear_cache, :roles => :app do
+       opcache_file = "#{release_path}/pub/opcache_clear.php"
+       curl_options = "-s"
+       http_auth_users = 
+       #if !http_auth_users.to_a.empty? then
+       # curl_options = curl_options + " --user " + http_auth_users[0][0] + ":" + http_auth_users[0][1]
+       #end
 
-     put "<?php opcache_reset(); ?>", opcache_file, :mode => 0644
-     run "curl #{curl_options} http://#{application}/opcache_clear.php && rm -f #{opcache_file}"
-    end
+       put "<?php opcache_reset(); ?>", opcache_file, :mode => 0644
+       run "curl #{curl_options} http://#{application}/opcache_clear.php && rm -f #{opcache_file}"
+      end
    end
    
     desc 'Flush Magento cache storage'
