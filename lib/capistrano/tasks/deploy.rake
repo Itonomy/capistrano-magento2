@@ -25,6 +25,7 @@ namespace :deploy do
     invoke 'magento:deploy:verify'
     invoke 'magento:composer:install' if fetch(:magento_deploy_composer)
     invoke 'magento:setup:permissions'
+    invoke 'magento:setup:db:config'
     if fetch(:magento_deploy_production)
       invoke 'magento:setup:static-content:deploy'
       invoke 'magento:setup:di:compile'
