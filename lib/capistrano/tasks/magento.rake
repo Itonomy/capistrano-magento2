@@ -194,7 +194,7 @@ namespace :magento do
       task :config do
         on primary fetch(:all) do
           within release_path do
-            execute :magento, 'app:config:import', verbosity: Logger::INFO
+            execute :magento, 'app:config:import'
           end
         end
       end
