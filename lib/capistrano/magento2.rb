@@ -13,7 +13,8 @@ module Capistrano
   module Magento2
     module Helpers
       def magento_version
-        return Gem::Version::new((capture :php, "-f #{release_path}/bin/magento -- -V --no-ansi").split(' ').pop)
+        version = (capture "/usr/bin/env php -f #{release_path}/bin/magento -- -V").split(' ').pop.gsub(/\e\[(\d+)m/, '')
+        return Gem::Version::new(version)
       end
 
       def disabled_modules
@@ -48,15 +49,9 @@ module Capistrano
       def static_content_deploy params
         Helpers.set_pipefail
         output = capture :magento,
-          "setup:static-content:deploy --no-ansi #{params} | stdbuf -o0 tr -d .",
+          "setup:static-content:deploy -f --no-ansi #{params} | stdbuf -o0 tr -d .",
           verbosity: Logger::INFO
         Helpers.unset_pipefail
-
-        # String based error checking is here to catch errors in Magento 2.1.0 and earlier; later versions will exit
-        # immediately when a console exit code is retruned, never evaluating this code.
-        if not output.to_s.include? 'New version of deployed files'
-          raise Exception, "\e[0;31mFailed to compile static assets. No new version found in command output!\e[0m"
-        end
 
         output.to_s.each_line { |line|
           if line.split('errors: ', 2).pop.to_i > 0
