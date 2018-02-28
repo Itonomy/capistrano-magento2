@@ -9,7 +9,6 @@
 
 include Capistrano::Magento2::Helpers
 include Capistrano::Magento2::Setup
-
 namespace :magento do
 
   namespace :cache do
@@ -67,7 +66,7 @@ namespace :magento do
             url = capture :magento, 'config:show web/unsecure/base_url', verbosity: Logger::INFO
             code = "<?php opcache_reset(); ?>"
             upload!(StringIO.new(code), "#{release_path}/pub/opcache_clear.php")
-            File.chmod(0775, "#{release_path}/pub/opcache_clear.php")
+            execute :chmod, '755 "#{release_path}/pub/opcache_clear.php"'
             execute :curl, %W{#{url}/opcache_clear.php}
           end
         end
