@@ -67,7 +67,7 @@ namespace :magento do
             code = "<?php opcache_reset(); ?>"
             opFilePath = "#{release_path}/pub/opcache_clear.php";
             upload!(StringIO.new(code), opFilePath)
-            execute :chmod, '755 "'+ opFilePath +'"'
+            execute :chmod, '765 "'+ opFilePath +'"'
             execute :curl, %W{#{url}/opcache_clear.php}
           end
         end
