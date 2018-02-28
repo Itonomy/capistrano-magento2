@@ -65,8 +65,9 @@ namespace :magento do
           within release_path do
             url = capture :magento, 'config:show web/unsecure/base_url', verbosity: Logger::INFO
             code = "<?php opcache_reset(); ?>"
-            upload!(StringIO.new(code), "#{release_path}/pub/opcache_clear.php")
-            execute :chmod, '755 "#{release_path}/pub/opcache_clear.php"'
+            opFilePath = "#{release_path}/pub/opcache_clear.php";
+            upload!(StringIO.new(code), opFilePath)
+            execute :chmod, '755 "'+ opFilePath +'"'
             execute :curl, %W{#{url}/opcache_clear.php}
           end
         end
