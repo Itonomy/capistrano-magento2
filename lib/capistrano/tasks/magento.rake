@@ -361,7 +361,7 @@ namespace :magento do
           pearl_css_stores = fetch(:magento_deploy_pearl_stores)
             if pearl_css_stores.count() > 0
               pearl_css_stores.each do |store|
-                execute :magento, 'weltpixel:css:generate --store=#{store}'
+                execute :magento, "weltpixel:css:generate --store=#{store}"
               end
             end
           end
