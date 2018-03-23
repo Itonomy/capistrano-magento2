@@ -351,6 +351,23 @@ namespace :magento do
     end
   end
 
+  namespace :pearl do
+    desc 'Compile pearl LESS + CSS assets'
+    task :compile do
+      on release_roles :all do
+        within release_path do
+          execute :magento, 'weltpixel:less:generate'
+
+          pearl_css_stores = fetch(:magento_deploy_pearl_stores)
+            if pearl_css_stores.count() > 0
+              pearl_css_stores.each do |store|
+                execute :magento, 'weltpixel:css:generate --store=#{store}'
+              end
+            end
+        end
+      end
+    end
+
   namespace :maintenance do
     desc 'Enable maintenance mode'
     task :enable do

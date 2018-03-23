@@ -50,6 +50,8 @@ set :magento_deploy_languages, fetch(:magento_deploy_languages, ['en_US'])
 set :magento_deploy_maintenance, fetch(:magento_deploy_maintenance, true)
 set :magento_deploy_production, fetch(:magento_deploy_production, true)
 set :magento_deploy_themes, fetch(:magento_deploy_themes, [])
+set :magento_deploy_pearl, fetch(:magento_deploy_pearl, false)
+set :magento_deploy_pearl_stores, fetch(:magento_deploy_pearl_stores, [])
 set :magento_deploy_jobs, fetch(:magento_deploy_jobs, nil)      # this defaults to 4 when supported by bin/magento
 set :magento_deploy_clear_opcache, fetch(:magento_deploy_clear_opcache, true)
 set :magento_deploy_clear_varnish, fetch(:magento_deploy_clear_varnish, true)
