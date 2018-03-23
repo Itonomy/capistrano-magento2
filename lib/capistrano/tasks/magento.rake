@@ -364,6 +364,7 @@ namespace :magento do
                 execute :magento, 'weltpixel:css:generate --store=#{store}'
               end
             end
+          end
         end
       end
     end
