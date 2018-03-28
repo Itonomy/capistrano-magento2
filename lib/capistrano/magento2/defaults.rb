@@ -55,6 +55,7 @@ set :magento_deploy_pearl_stores, fetch(:magento_deploy_pearl_stores, [])
 set :magento_deploy_jobs, fetch(:magento_deploy_jobs, nil)      # this defaults to 4 when supported by bin/magento
 set :magento_deploy_clear_opcache, fetch(:magento_deploy_clear_opcache, true)
 set :magento_deploy_clear_varnish, fetch(:magento_deploy_clear_varnish, true)
+set :composer_install_flags, fetch(:composer_install_flags, '--prefer-dist --no-interaction --no-progress --no-suggest');
 
 # deploy targetting defaults
 set :magento_deploy_setup_role, fetch(:magento_deploy_setup_role, :all)
