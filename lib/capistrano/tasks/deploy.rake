@@ -27,12 +27,12 @@ namespace :deploy do
     invoke 'magento:setup:permissions'
     invoke 'magento:setup:db:config'
 
-    invoke 'magento:pearl:compile' if fetch(:magento_deploy_pearl)
-
     if fetch(:magento_deploy_production)
       invoke 'magento:setup:static-content:deploy'
       invoke 'magento:setup:di:compile'
     end
+
+    invoke 'magento:pearl:compile' if fetch(:magento_deploy_pearl)
 
     invoke 'magento:setup:permissions'
     invoke 'magento:maintenance:enable' if fetch(:magento_deploy_maintenance)
