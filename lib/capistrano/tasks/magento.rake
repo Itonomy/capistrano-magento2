@@ -21,7 +21,7 @@ namespace :magento do
         end
       end
 
-      task :db-gzip do
+      task :gzip do
         on roles(:app) do
           if test("[ -d #{current_path} ]")
               within current_path do

@@ -66,6 +66,6 @@ namespace :deploy do
     invoke 'magento:cache:opcache:clear' if fetch(:magento_deploy_clear_opcache)
     invoke 'magento:cache:varnish:ban' if fetch(:magento_deploy_clear_varnish)
     invoke 'magento:maintenance:disable' if fetch(:magento_deploy_maintenance)
-    invoke 'magento:backups:db-gzip'
+    invoke 'magento:backups:gzip'
   end
 end
