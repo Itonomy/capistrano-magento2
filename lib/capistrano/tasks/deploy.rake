@@ -44,7 +44,7 @@ namespace :deploy do
         end
       end
     end
-
+    invoke 'magento:backups:db'
     invoke 'magento:setup:db:schema:upgrade'
     invoke 'magento:setup:db:data:upgrade'
 
@@ -66,5 +66,6 @@ namespace :deploy do
     invoke 'magento:cache:opcache:clear' if fetch(:magento_deploy_clear_opcache)
     invoke 'magento:cache:varnish:ban' if fetch(:magento_deploy_clear_varnish)
     invoke 'magento:maintenance:disable' if fetch(:magento_deploy_maintenance)
+    invoke 'magento:backups:db-gzip'
   end
 end

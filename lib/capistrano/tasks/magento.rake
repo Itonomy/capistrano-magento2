@@ -10,6 +10,27 @@
 include Capistrano::Magento2::Helpers
 include Capistrano::Magento2::Setup
 namespace :magento do
+  namespace :backups do
+      task :db do
+        on roles(:app) do
+          if test("[ -d #{current_path} ]")
+              within current_path do
+                 execute :php, 'bin/magento', 'setup:backup', '--db', '-n', '-q'
+              end
+          end
+        end
+      end
+
+      task :db-gzip do
+        on roles(:app) do
+          if test("[ -d #{current_path} ]")
+              within current_path do
+                 execute :gzip, 'var/backups/`ls var/backups -t | head -1`'
+              end
+          end
+        end
+      end
+  end
 
   namespace :cache do
    
