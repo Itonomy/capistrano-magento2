@@ -25,7 +25,7 @@ namespace :magento do
         on roles(:app) do
           if test("[ -d #{current_path} ]")
               within current_path do
-                 execute :gzip, 'var/backups/`ls var/backups -t | head -1`'
+                 execute 'gzip', 'var/backups/`ls var/backups -t | head -1`'
               end
           end
         end
