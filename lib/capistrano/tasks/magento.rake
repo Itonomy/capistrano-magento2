@@ -84,12 +84,19 @@ namespace :magento do
       task :clear do
         on release_roles :all do
           within release_path do
-            url = capture :magento, 'config:show web/unsecure/base_url', verbosity: Logger::INFO
             code = "<?php opcache_reset(); ?>"
-            opFilePath = "#{release_path}/pub/opcache_clear.php";
-            upload!(StringIO.new(code), opFilePath)
-            execute :chmod, '765 "'+ opFilePath +'"'
-            execute :curl, %W{#{url}/opcache_clear.php}
+            op_file_path = "#{release_path}/pub/opcache_clear.php";
+            upload!(StringIO.new(code), op_file_path)
+            execute :chmod, '765 "'+ op_file_path +'"'
+            opcache_urls = Array.new(capture :magento, 'config:show web/unsecure/base_url', verbosity: Logger::INFO)
+            fetch(:magento_deploy_clear_opcache_additional_websites).each {|store_scope_code|
+              opcache_urls.insert capture :magento,
+                      "config:show --scope=websites --scope-code=#{store_scope_code} web/unsecure/base_url",
+                      verbosity: Logger::INFO
+            }
+            opcache_urls.each {|opcache_url|
+              execute :curl, %W{#{opcache_url}/opcache_clear.php}
+            }
           end
         end
       end
