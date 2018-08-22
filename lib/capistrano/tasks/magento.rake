@@ -88,11 +88,11 @@ namespace :magento do
             op_file_path = "#{release_path}/pub/opcache_clear.php";
             upload!(StringIO.new(code), op_file_path)
             execute :chmod, '765 "'+ op_file_path +'"'
-            opcache_urls = Array.new(capture :magento, 'config:show web/unsecure/base_url', verbosity: Logger::INFO)
+            opcache_urls = Array.new(capture(:magento, 'config:show web/unsecure/base_url', verbosity: Logger::INFO))
             fetch(:magento_deploy_clear_opcache_additional_websites).each {|store_scope_code|
-              opcache_urls.insert capture :magento,
+              opcache_urls.insert(0, capture(:magento,
                       "config:show --scope=websites --scope-code=#{store_scope_code} web/unsecure/base_url",
-                      verbosity: Logger::INFO
+                      verbosity: Logger::INFO))
             }
             opcache_urls.each {|opcache_url|
               execute :curl, %W{#{opcache_url}/opcache_clear.php}
