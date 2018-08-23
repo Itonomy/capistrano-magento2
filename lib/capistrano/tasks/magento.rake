@@ -94,7 +94,6 @@ namespace :magento do
             for additional_website in additional_websites do
               opcache_urls.push(capture(:magento, "config:show --scope=websites --scope-code=#{additional_website} web/unsecure/base_url", verbosity: Logger::INFO))
             end
-            print opcache_urls
             for opcache_url in opcache_urls do
               execute :curl, %W{#{opcache_url}/opcache_clear.php}
             end
