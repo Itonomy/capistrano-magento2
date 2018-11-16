@@ -43,6 +43,11 @@ set :magento_deploy_chmod_d, fetch(:magento_deploy_chmod_d, '2770')
 set :magento_deploy_chmod_f, fetch(:magento_deploy_chmod_f, '0660')
 set :magento_deploy_chmod_x, fetch(:magento_deploy_chmod_x, ['bin/magento'])
 
+# MageDB2 backups
+set :magedbm_put_backup, true
+set :magedbm_get_backup, fetch(:magedbm_get_backup, false)
+set :magedbm_project_name, fetch(:magedbm_project_name, '')
+
 # deploy configuration defaults
 set :magento_deploy_composer, fetch(:magento_deploy_composer, true)
 set :magento_deploy_confirm, fetch(:magento_deploy_confirm, [])
@@ -69,8 +74,3 @@ set :magento_deploy_pending_format, fetch(
   :magento_deploy_pending_format,
   '--pretty="format:%C(yellow)%h %Cblue%>(12)%ai %Cgreen%<(7)%aN%Cred%d %Creset%s"'
 )
-
-# MageDB2 backups
-set :magedbm_put_backup, fetch(:magedbm_put_backup, false)
-set :magedbm_get_backup, fetch(:magedbm_get_backup, false)
-set :magedbm_project_name, fetch(:magedbm_project_name, '')
