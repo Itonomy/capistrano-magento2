@@ -32,6 +32,45 @@ namespace :magento do
       end
   end
 
+  namespace :magedbm do
+    desc 'Downloads Magedbm2 tool if it does not exist'
+    task :download do
+      on primary fetch(:magento_deploy_setup_role) do
+        if File.file?(Dir.home + "/.magedbm2/config.yml")
+          if !File.file?(Dir.home + "/magedbm2.phar") do
+            download = open('https://itonomy.nl/downloads/magedbm2.phar')
+            IO.copy_stream(download, Dir.home + "/#{download.base_uri.to_s.split('/')[-1]}")
+          end
+        else
+          puts "\e[0;31m    Warning: "+ Dir.home + "/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+        end
+      end
+    end
+
+    desc 'Export database via Magedbm2'
+    task :put do
+      on primary fetch(:magento_deploy_setup_role) do
+        if File.file?(Dir.home + "/.magedbm2/config.yml")
+          execute :php, Dir.home + "/magedbm2.phar", "put", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
+        else
+          puts "\e[0;31m    Warning: "+ Dir.home + "/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+        end
+      end
+    end
+
+    desc 'Import database via Magedbm2'
+    task :get do
+      on primary fetch(:magento_deploy_setup_role) do
+        if File.file?(Dir.home + "/.magedbm2/config.yml")
+          execute :php, Dir.home + "/magedbm2.phar", "get", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
+        end
+        else
+          puts "\e[0;31m    Warning: "+ Dir.home + "/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+        end
+      end
+    end
+  end
+
   namespace :cache do
    
     desc 'Flush Magento cache storage'
@@ -102,7 +141,7 @@ namespace :magento do
         end
       end
     end
-  
+
     namespace :varnish do
       # TODO: Document what the magento:cache:varnish:ban task is for and how to use it. See also magento/magento2#4106
       desc 'Add ban to Varnish for url(s)'

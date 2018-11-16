@@ -45,6 +45,9 @@ namespace :deploy do
       end
     end
     invoke 'magento:backups:db'
+    invoke 'magento:magedbm:download' if fetch(:magedbm_get_backup) || fetch(:magedbm_put_backup)
+    invoke 'magento:magedbm:put' if fetch(:magedbm_put_backup)
+    invoke 'magento:magedbm:get' if fetch(:magedbm_get_backup)
     invoke 'magento:setup:db:schema:upgrade'
     invoke 'magento:setup:db:data:upgrade'
 
