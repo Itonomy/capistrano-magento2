@@ -37,7 +37,7 @@ namespace :magento do
     task :download do
       on primary fetch(:magento_deploy_setup_role) do
         if File.file?(Dir.home + "/.magedbm2/config.yml")
-          if !File.file?(Dir.home + "/magedbm2.phar") do
+          if File.file?(Dir.home + "/magedbm2.phar") === false
             download = open('https://itonomy.nl/downloads/magedbm2.phar')
             IO.copy_stream(download, Dir.home + "/#{download.base_uri.to_s.split('/')[-1]}")
           end
@@ -63,7 +63,6 @@ namespace :magento do
       on primary fetch(:magento_deploy_setup_role) do
         if File.file?(Dir.home + "/.magedbm2/config.yml")
           execute :php, Dir.home + "/magedbm2.phar", "get", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
-        end
         else
           puts "\e[0;31m    Warning: "+ Dir.home + "/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
         end
