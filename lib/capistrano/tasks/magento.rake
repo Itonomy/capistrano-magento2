@@ -35,7 +35,7 @@ namespace :magento do
   namespace :magedbm do
     desc 'Downloads Magedbm2 tool if it does not exist'
     task :download do
-      on primary fetch(:magento_deploy_setup_role) do
+      on roles(:app) do
         if File.file?(Dir.home + "/.magedbm2/config.yml")
           if File.file?(Dir.home + "/magedbm2.phar") === false
             download = open('https://itonomy.nl/downloads/magedbm2.phar')
@@ -49,7 +49,7 @@ namespace :magento do
 
     desc 'Export database via Magedbm2'
     task :put do
-      on primary fetch(:magento_deploy_setup_role) do
+      on roles(:app) do
         if File.file?(Dir.home + "/.magedbm2/config.yml")
           execute :php, Dir.home + "/magedbm2.phar", "put", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
         else
@@ -60,7 +60,7 @@ namespace :magento do
 
     desc 'Import database via Magedbm2'
     task :get do
-      on primary fetch(:magento_deploy_setup_role) do
+      on roles(:app) do
         if File.file?(Dir.home + "/.magedbm2/config.yml")
           execute :php, Dir.home + "/magedbm2.phar", "get", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
         else
