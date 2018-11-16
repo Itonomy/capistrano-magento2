@@ -36,13 +36,15 @@ namespace :magento do
     desc 'Downloads Magedbm2 tool if it does not exist'
     task :download do
       on roles(:app) do
-        if File.file?(Dir.home + "/.magedbm2/config.yml")
-          if File.file?(Dir.home + "/magedbm2.phar") === false
-            download = open('https://itonomy.nl/downloads/magedbm2.phar')
-            IO.copy_stream(download, Dir.home + "/#{download.base_uri.to_s.split('/')[-1]}")
+        within release_path do
+          if File.file?(Dir.home + "/.magedbm2/config.yml")
+            if File.file?(Dir.home + "/magedbm2.phar") === false
+              download = open('https://itonomy.nl/downloads/magedbm2.phar')
+              IO.copy_stream(download, Dir.home + "/#{download.base_uri.to_s.split('/')[-1]}")
+            end
+          else
+            puts "\e[0;31m    Warning: "+ Dir.home + "/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
           end
-        else
-          puts "\e[0;31m    Warning: "+ Dir.home + "/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
         end
       end
     end
@@ -50,10 +52,12 @@ namespace :magento do
     desc 'Export database via Magedbm2'
     task :put do
       on roles(:app) do
-        if File.file?(Dir.home + "/.magedbm2/config.yml")
-          execute :php, Dir.home + "/magedbm2.phar", "put", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
-        else
-          puts "\e[0;31m    Warning: "+ Dir.home + "/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+        within release_path do
+          if File.file?(Dir.home + "/.magedbm2/config.yml")
+            execute :php, Dir.home + "/magedbm2.phar", "put", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
+          else
+            puts "\e[0;31m    Warning: "+ Dir.home + "/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+          end
         end
       end
     end
@@ -61,10 +65,12 @@ namespace :magento do
     desc 'Import database via Magedbm2'
     task :get do
       on roles(:app) do
-        if File.file?(Dir.home + "/.magedbm2/config.yml")
-          execute :php, Dir.home + "/magedbm2.phar", "get", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
-        else
-          puts "\e[0;31m    Warning: "+ Dir.home + "/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+        within release_path do
+          if File.file?(Dir.home + "/.magedbm2/config.yml")
+            execute :php, Dir.home + "/magedbm2.phar", "get", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
+          else
+            puts "\e[0;31m    Warning: "+ Dir.home + "/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+          end
         end
       end
     end
