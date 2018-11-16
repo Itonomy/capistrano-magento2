@@ -35,8 +35,7 @@ namespace :magento do
   namespace :magedbm do
     desc 'Downloads Magedbm2 tool if it does not exist'
     task :download do
-      warn "Got to the download"
-      on roles(:app) do
+      on release_roles :all do
         within release_path do
           if File.file?(Dir.home + "/.magedbm2/config.yml")
             if File.file?(Dir.home + "/magedbm2.phar") === false
@@ -52,8 +51,7 @@ namespace :magento do
 
     desc 'Export database via Magedbm2'
     task :put do
-      warn "Got to the put"
-      on roles(:app) do
+      on release_roles :all do
         within release_path do
           if File.file?(Dir.home + "/.magedbm2/config.yml")
             execute :php, Dir.home + "/magedbm2.phar", "put", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
