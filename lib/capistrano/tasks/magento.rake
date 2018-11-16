@@ -37,10 +37,10 @@ namespace :magento do
     task :download do
       on release_roles :all do
         within release_path do
-          if test "[[ -f ~/.magedbm2/config.yml]]"
+          if test "[[ -f ~/.magedbm2/config.yml ]]"
             if test "[[ -f magedbm2.phar ]]"
             else
-              execute :curl, "https://itonomy.nl/downloads/magedbm2.phar"
+              execute :wget, "https://itonomy.nl/downloads/magedbm2.phar"
             end
           else
             puts "\e[0;31m    Warning: "+ Dir.home + "/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
@@ -53,7 +53,7 @@ namespace :magento do
     task :put do
       on release_roles :all do
         within release_path do
-          if test "[[ -f ~/.magedbm2/config.yml]]"
+          if test "[[ -f ~/.magedbm2/config.yml ]]"
             execute :php, "magedbm2.phar", "put", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
           else
             puts "\e[0;31m    Warning: "+ Dir.home + "/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
@@ -66,7 +66,7 @@ namespace :magento do
     task :get do
       on roles(:app) do
         within release_path do
-          if test "[[ -f ~/.magedbm2/config.yml]]"
+          if test "[[ -f ~/.magedbm2/config.yml ]]"
             execute :php, "magedbm2.phar", "get", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
           else
             puts "\e[0;31m    Warning: "+ Dir.home + "/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
