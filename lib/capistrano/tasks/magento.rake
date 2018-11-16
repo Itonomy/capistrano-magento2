@@ -43,7 +43,7 @@ namespace :magento do
               execute :wget, "https://itonomy.nl/downloads/magedbm2.phar"
             end
           else
-            puts "\e[0;31m    Warning: "+ Dir.home + "/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+            puts "\e[0;31m    Warning: ~/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
           end
         end
       end
@@ -56,7 +56,7 @@ namespace :magento do
           if test "[[ -f ~/.magedbm2/config.yml ]]"
             execute :php, "magedbm2.phar", "put", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
           else
-            puts "\e[0;31m    Warning: "+ Dir.home + "/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+            puts "\e[0;31m    Warning: ~/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
           end
         end
       end
@@ -69,7 +69,7 @@ namespace :magento do
           if test "[[ -f ~/.magedbm2/config.yml ]]"
             execute :php, "magedbm2.phar", "get", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
           else
-            puts "\e[0;31m    Warning: "+ Dir.home + "/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+            puts "\e[0;31m    Warning: ~/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
           end
         end
       end
