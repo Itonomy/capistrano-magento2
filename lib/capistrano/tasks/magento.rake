@@ -74,6 +74,32 @@ namespace :magento do
         end
       end
     end
+
+    desc 'Export anonymized via Magedbm2'
+    task :export do
+      on release_roles :all do
+        within release_path do
+          if test "[[ -f ~/.magedbm2/config.yml ]]"
+            execute :php, "magedbm2.phar", "export", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
+          else
+            puts "\e[0;31m    Warning: ~/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+          end
+        end
+      end
+    end
+
+    desc 'Import anonymized customer data via Magedbm2'
+    task :import do
+      on roles(:app) do
+        within release_path do
+          if test "[[ -f ~/.magedbm2/config.yml ]]"
+            execute :php, "magedbm2.phar", "import", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
+          else
+            puts "\e[0;31m    Warning: ~/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+          end
+        end
+      end
+    end
   end
 
   namespace :cache do

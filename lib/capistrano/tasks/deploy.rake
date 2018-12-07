@@ -27,9 +27,11 @@ namespace :deploy do
     invoke 'magento:setup:permissions'
     invoke 'magento:setup:db:config'
 
-    invoke 'magento:magedbm:download' if (fetch(:magedbm_get_backup) || fetch(:magedbm_put_backup))
+    invoke 'magento:magedbm:download' if (fetch(:magedbm_get_backup) || fetch(:magedbm_put_backup) || fetch(:magedbm_export_data) || fetch(:magedbm_import_data))
     invoke 'magento:magedbm:put' if fetch(:magedbm_put_backup)
     invoke 'magento:magedbm:get' if fetch(:magedbm_get_backup)
+    invoke 'magento:magedbm:import' if fetch(:magedbm_import_data)
+    invoke 'magento:magedbm:export' if fetch(:magedbm_export_data)
 
     if fetch(:magento_deploy_production)
       invoke 'magento:setup:static-content:deploy'

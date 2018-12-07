@@ -46,6 +46,8 @@ set :magento_deploy_chmod_x, fetch(:magento_deploy_chmod_x, ['bin/magento'])
 # MageDB2 backups
 set :magedbm_put_backup, fetch(:magedbm_put_backup, false)
 set :magedbm_get_backup, fetch(:magedbm_get_backup, false)
+set :magedbm_export_data, fetch(:magedbm_export_data, false)
+set :magedbm_import_data, fetch(:magedbm_import_data, false)
 set :magedbm_project_name, fetch(:magedbm_project_name, '')
 
 # deploy configuration defaults
