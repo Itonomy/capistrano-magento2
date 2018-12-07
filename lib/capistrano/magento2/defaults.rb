@@ -44,7 +44,7 @@ set :magento_deploy_chmod_f, fetch(:magento_deploy_chmod_f, '0660')
 set :magento_deploy_chmod_x, fetch(:magento_deploy_chmod_x, ['bin/magento'])
 
 # MageDB2 backups
-set :magedbm_put_backup, true
+set :magedbm_put_backup, fetch(:magedbm_put_backup, false)
 set :magedbm_get_backup, fetch(:magedbm_get_backup, false)
 set :magedbm_project_name, fetch(:magedbm_project_name, '')
 
