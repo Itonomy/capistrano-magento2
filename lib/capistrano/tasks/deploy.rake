@@ -24,6 +24,7 @@ namespace :deploy do
   task :updated do
     invoke 'magento:deploy:verify'
     invoke 'magento:composer:install' if fetch(:magento_deploy_composer)
+    invoke 'magento:deploy:version_check'
     invoke 'magento:setup:permissions'
     invoke 'magento:setup:db:config'
 
@@ -32,13 +33,16 @@ namespace :deploy do
     invoke 'magento:magedbm:get' if fetch(:magedbm_get_backup)
 
     if fetch(:magento_deploy_production)
+      invoke 'magento:deploy:mode:production'
       invoke 'magento:setup:static-content:deploy'
       invoke 'magento:setup:di:compile'
+      invoke 'magento:composer:dump-autoload' if fetch(:magento_deploy_composer)
     end
 
     invoke 'magento:pearl:compile' if fetch(:magento_deploy_pearl)
 
     invoke 'magento:setup:permissions'
+    invoke 'magento:maintenance:check'
     invoke 'magento:maintenance:enable' if fetch(:magento_deploy_maintenance)
 
     on release_roles :all do
@@ -48,9 +52,23 @@ namespace :deploy do
         end
       end
     end
+
     invoke 'magento:backups:db'
     invoke 'magento:setup:db:schema:upgrade'
     invoke 'magento:setup:db:data:upgrade'
+    invoke 'magento:setup:db:schema:upgrade' if not fetch(:magento_internal_zero_down_flag)
+    invoke 'magento:setup:db:data:upgrade' if not fetch(:magento_internal_zero_down_flag)
+
+    # The app:config:import command was introduced in 2.2.0; check if it exists before invoking it
+    on primary fetch(:magento_deploy_setup_role) do
+      within release_path do
+        if test :magento, 'app:config:import --help >/dev/null 2>&1'
+          if not fetch(:magento_internal_zero_down_flag)
+            invoke 'magento:app:config:import'
+          end
+        end
+      end
+    end
 
     on primary fetch(:magento_deploy_setup_role) do
       within release_path do

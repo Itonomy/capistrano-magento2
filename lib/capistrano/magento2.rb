@@ -32,34 +32,25 @@ module Capistrano
       def cache_hosts
         return fetch(:magento_deploy_cache_shared) ? (primary fetch :magento_deploy_setup_role) : (release_roles :all)
       end
-
-      # Set pipefail allowing console exit codes in Magento 2.1.1 and later to halt execution when using pipes
-      def Helpers.set_pipefail
-        if not SSHKit.config.command_map[:magento].include? 'set -o pipefail' # avoids trouble on multi-host deploys
-          @@pipefail_less = SSHKit.config.command_map[:magento].dup
-          SSHKit.config.command_map[:magento] = "set -o pipefail; #{@@pipefail_less}"
-        end
-      end
-
-      # Reset the command map without prefix, removing pipefail option so it won't affect other commands
-      def Helpers.unset_pipefail
-        SSHKit.config.command_map[:magento] = @@pipefail_less
-      end
     end
 
     module Setup
       def static_content_deploy params
-        Helpers.set_pipefail
-        output = capture :magento,
-          "setup:static-content:deploy -f --no-ansi #{params} | stdbuf -o0 tr -d .",
-          verbosity: Logger::INFO
-        Helpers.unset_pipefail
-
-        output.to_s.each_line { |line|
-          if line.split('errors: ', 2).pop.to_i > 0
-            raise Exception, "\e[0;31mFailed to compile static assets. Errors found in command output: #{line}\e[0m"
+        if magento_version >= Gem::Version.new('2.2.0-rc')
+          # Using -f here just in case MAGE_MODE environment variable in shell is set to something other than production
+          execute :magento, "setup:static-content:deploy -f #{params}"
+        else
+          # Sets pipefail option in shell allowing command exit codes to halt execution when piping command output
+          if not SSHKit.config.command_map[:magento].include? 'set -o pipefail' # avoids trouble on multi-host deploys
+            @@pipefail_less = SSHKit.config.command_map[:magento].dup
+            SSHKit.config.command_map[:magento] = "set -o pipefail; #{@@pipefail_less}"
           end
-        }
+
+          execute :magento, "setup:static-content:deploy #{params} | stdbuf -o0 tr -d ."
+
+          # Unsets pipefail option in shell so it won't affect future command executions
+          SSHKit.config.command_map[:magento] = @@pipefail_less
+        end
       end
 
       def deployed_version

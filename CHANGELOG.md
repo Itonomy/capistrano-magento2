@@ -1,5 +1,74 @@
 # Capistrano::Magento2 Change Log
 
+0.8.6
+==========
+
+* Fixed possible race condition in `magento:deploy:version_check` when `app/etc/env.php` resides on an NFS share
+
+0.8.5
+==========
+
+* Added ability to override flags sent to `composer install` to workaround issue in Magento 2.3 beta preventing deploy
+
+0.8.4
+==========
+
+* Disabled call to `magento:setup:db:schema:upgrade` when running a zero-down deployment
+* Disabled call to `magento:setup:db:data:upgrade` when running a zero-down deployment
+* Fixed possible race condition in `magento:deploy:mode:production` when `app/etc/env.php` resides on an NFS share
+
+0.8.3
+==========
+
+* Fixed regression failing deployment when `:magento_deploy_composer` is set to `false` (PR #106)
+
+0.8.2
+==========
+
+* Added `var/export` to default list of :linked_dirs to support bundled `dotmailer/dotmailer-magento2-extension` package
+
+0.8.1
+==========
+
+* Added `require 'capistrano/magento2/cachetool'` which may be used to enable flushing the php-opcache when [cachetool](http://gordalina.github.io/cachetool/) is installed on the server
+* Added `cachetool:opcache:status` and `cachetool:opcache:reset` commands (use `require 'capistrano/magento2/cachetool'` to enable them)
+* Fixed issue causing deployment to disable maintenance mode when manually enabled prior to deployment (issue #16)
+
+0.8.0
+==========
+
+* Added support for zero-down deployment (PR #104, issue #34)
+* Added call to "composer dump-autoload --no-dev --optimize" following DI compliation (issue #102)
+
+0.7.3
+==========
+
+* Optimized set permissions operation (PR #89)
+* Fixed `uninitialized constant Capistrano::Magento2::Setup::DateTime` error (PR #93, issue #92)
+
+0.7.2
+==========
+
+* Added support for Magento 2.2 [static content deploy strategies](http://bit.ly/2yhMvVv) (PR #85)
+* Added support for Magento 2.2 [shared application config files](http://bit.ly/2gF8Ouu) (issue #83)
+
+0.7.1
+==========
+
+* Fixed deploy routine so production mode is no longer enabled automatically when `:magento_deploy_production` is false
+* Fixed regression in multi-lingual deployment (reverted boxing workaround with 2.1.7 upper limit; release notes are wrong and the issue persists in 2.1.8)
+* Updated double run of static content deploy to only apply to versions prior to 2.1.8 (underling issue was resolved in 2.1.8)
+
+0.7.0
+==========
+
+* Added support for Magento 2.2.0 release candidates
+* Removed support for deployment of Magento versions older than 2.1.1
+* Updated and optimized static content deployment for upcoming Magento 2.2.0 release
+* Updated composer install routine; --no-dev is now used indiscriminately since Magento 2.1.1 and later support it; no more duplicate composer install commands (issue #76)
+* Updated multi-lingual site deployment workaround to apply only to versions 2.1.3 through 2.1.7 as per 2.1.8 release notes the underlying issue has been resolved (issue #72)
+* Added tasks to set production mode and show current mode (magento:deploy:mode:production and magento:deploy:mode:show)
+
 0.6.6
 ==========
 
