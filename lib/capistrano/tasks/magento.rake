@@ -35,7 +35,7 @@ namespace :magento do
   namespace :magedbm do
     desc 'Downloads Magedbm2 tool if it does not exist'
     task :download do
-      on release_roles :all do
+      on roles(:app) do
         within release_path do
           if test "[[ -f ~/.magedbm2/config.yml ]]"
             if test "[[ -f magedbm2.phar ]]"
@@ -51,7 +51,7 @@ namespace :magento do
 
     desc 'Export database via Magedbm2'
     task :put do
-      on release_roles :all do
+      on roles(:app) do
         within release_path do
           if test "[[ -f ~/.magedbm2/config.yml ]]"
             execute :php, "magedbm2.phar", "put", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
@@ -77,7 +77,7 @@ namespace :magento do
 
     desc 'Export anonymized via Magedbm2'
     task :export do
-      on release_roles :all do
+      on roles(:app) do
         within release_path do
           if test "[[ -f ~/.magedbm2/config.yml ]]"
             execute :php, "magedbm2.phar", "export", "--root-dir=#{release_path}", fetch(:magedbm_project_name)
