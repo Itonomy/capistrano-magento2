@@ -50,7 +50,7 @@ namespace :deploy do
         end
       end
     end
-    invoke 'magento:backups:db'
+    invoke 'magento:backups:db' if fetch(:magento_deploy_backup)
     invoke 'magento:setup:db:schema:upgrade'
     invoke 'magento:setup:db:data:upgrade'
 

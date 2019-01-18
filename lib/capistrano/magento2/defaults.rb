@@ -52,6 +52,7 @@ set :magedbm_project_name, fetch(:magedbm_project_name, '')
 
 # deploy configuration defaults
 set :magento_deploy_composer, fetch(:magento_deploy_composer, true)
+set :magento_deploy_backup, fetch(:magento_deploy_backup, true)
 set :magento_deploy_confirm, fetch(:magento_deploy_confirm, [])
 set :magento_deploy_languages, fetch(:magento_deploy_languages, ['en_US'])
 set :magento_deploy_maintenance, fetch(:magento_deploy_maintenance, true)
