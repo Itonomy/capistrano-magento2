@@ -11,11 +11,11 @@ include Capistrano::Magento2::Helpers
 include Capistrano::Magento2::Setup
 
 namespace :magento do
-    namespace 'queue-consumers' do
-      on roles(:app) do
-        system("ps aux | grep queue:consumers:start | sed -nE 's/^[a-zA-Z0-9]+\s+([0-9]+).*$/\1/p' | xargs -n1 kill -9")
-      end
+  namespace 'queue-consumers' do
+    on roles(:app) do
+      system("ps aux | grep queue:consumers:start | sed -nE 's/^[a-zA-Z0-9]+\s+([0-9]+).*$/\1/p' | xargs -n1 kill -9")
     end
+  end
 
   namespace :backups do
       task :db do
