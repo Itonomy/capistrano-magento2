@@ -31,6 +31,10 @@ namespace :deploy do
 
     if fetch(:magento_deploy_production)
       invoke 'magento:setup:static-content:deploy'
+      _buildjs = fetch(:magento_deploy_buildjs)
+      if (File.exists?("#{current_path}#{_buildjs}")) and fetch(:magento_deploy_advanced_bundling)
+        invoke 'magento:bundle'
+      end
       invoke 'magento:setup:di:compile'
     end
 
