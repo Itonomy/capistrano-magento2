@@ -60,6 +60,7 @@ set :magento_deploy_production, fetch(:magento_deploy_production, true)
 set :magento_deploy_themes, fetch(:magento_deploy_themes, [])
 set :magento_deploy_pearl, fetch(:magento_deploy_pearl, false)
 set :magento_deploy_pearl_stores, fetch(:magento_deploy_pearl_stores, [])
+set :magento_deploy_advanced_bundling, fetch(:magento_deploy_advanced_bundling, false)
 set :magento_deploy_jobs, fetch(:magento_deploy_jobs, nil)      # this defaults to 4 when supported by bin/magento
 set :magento_deploy_clear_opcache, fetch(:magento_deploy_clear_opcache, true)
 set :magento_deploy_clear_opcache_additional_websites, fetch(:magento_deploy_clear_opcache_additional_websites, [])
