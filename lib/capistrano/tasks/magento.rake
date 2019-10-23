@@ -457,7 +457,7 @@ namespace :magento do
           deploy_languages = fetch(:magento_deploy_languages)
 
           within release_path do
-            if (File.exists?('build.js'))
+            if test "[[ -f build.js ]]"
               deploy_themes.each do |theme|
                 if theme != 'Magento/backend'
                   deploy_languages.each do |language|
