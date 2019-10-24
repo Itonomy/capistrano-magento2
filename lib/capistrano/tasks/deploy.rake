@@ -31,9 +31,7 @@ namespace :deploy do
 
     if fetch(:magento_deploy_production)
       invoke 'magento:setup:static-content:deploy'
-      if fetch(:magento_deploy_advanced_bundling)
-        invoke 'magento:setup:advanced-bundling:deploy'
-      end
+      invoke 'magento:advanced-bundling:deploy' if fetch(:magento_deploy_advanced_bundling)
       invoke 'magento:setup:di:compile'
     end
 
