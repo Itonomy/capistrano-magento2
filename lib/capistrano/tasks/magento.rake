@@ -110,12 +110,12 @@ namespace :magento do
         deploy_languages = fetch(:magento_deploy_languages)
 
         within release_path do
-          if test "[[ -f build.js ]]"
+          if test "[[ -f #{release_path}/build.js ]]"
             deploy_themes.each do |theme|
               if theme != 'Magento/backend'
                 deploy_languages.each do |language|
-                  execute "mv", "pub/static/frontend/#{theme}/#{language}/ pub/static/frontend/#{theme}/#{language}_source/"
-                  execute "r.js", "-o build.js dir=pub/static/frontend/#{theme}/#{language}/ baseUrl=pub/static/frontend/#{theme}/#{language}_source/"
+                  execute "mv", "#{release_path}/pub/static/frontend/#{theme}/#{language}/ #{release_path}/pub/static/frontend/#{theme}/#{language}_source/"
+                  execute "r.js", "-o #{release_path}/build.js dir=pub/static/frontend/#{theme}/#{language}/ baseUrl=#{release_path}/pub/static/frontend/#{theme}/#{language}_source/"
                 end
               end
             end
