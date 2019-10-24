@@ -102,8 +102,31 @@ namespace :magento do
     end
   end
 
+  namespace 'advanced-bundling' do
+    desc 'Deploys advanced bundling'
+    task :deploy do
+      on release_roles :all do
+        deploy_themes = fetch(:magento_deploy_themes)
+        deploy_languages = fetch(:magento_deploy_languages)
+
+        within release_path do
+          if test "[[ -f build.js ]]"
+            deploy_themes.each do |theme|
+              if theme != 'Magento/backend'
+                deploy_languages.each do |language|
+                  execute "mv", "pub/static/frontend/#{theme}/#{language}/ pub/static/frontend/#{theme}/#{language}_source/"
+                  execute "r.js", "-o build.js dir=pub/static/frontend/#{theme}/#{language}/ baseUrl=pub/static/frontend/#{theme}/#{language}_source/"
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+
   namespace :cache do
-   
+
     desc 'Flush Magento cache storage'
     task :flush do
       on cache_hosts do
@@ -445,29 +468,6 @@ namespace :magento do
 
           # Set the deployed_version of static content to ensure it matches across all hosts
           upload!(StringIO.new(deployed_version), "#{release_path}/pub/static/deployed_version.txt")
-        end
-      end
-    end
-
-    namespace :advanced-bundling do
-      desc 'Deploys advanced bundling'
-      task :deploy do
-        on release_roles :all do
-          deploy_themes = fetch(:magento_deploy_themes)
-          deploy_languages = fetch(:magento_deploy_languages)
-
-          within release_path do
-            if (File.exists?('build.js'))
-              deploy_themes.each do |theme|
-                if theme != 'Magento/backend'
-                  deploy_languages.each do |language|
-                    execute "mv", "pub/static/frontend/#{theme}/#{language}/ pub/static/frontend/#{theme}/#{language}_source/"
-                    execute "r.js", "-o build.js dir=pub/static/frontend/#{theme}/#{language}/ baseUrl=pub/static/frontend/#{theme}/#{language}_source/"
-                  end
-                end
-              end
-            end
-          end
         end
       end
     end
