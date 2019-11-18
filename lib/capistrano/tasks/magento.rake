@@ -114,9 +114,9 @@ namespace :magento do
             deploy_themes.each do |theme|
               if theme != 'Magento/backend'
                 deploy_languages.each do |language|
-                  execute "mv", "#{release_path}/pub/static/frontend/#{theme}/#{language}/ #{release_path}/pub/static/frontend/#{theme}/#{language}_source/"
+                  # execute "mv", "#{release_path}/pub/static/frontend/#{theme}/#{language}/ #{release_path}/pub/static/frontend/#{theme}/#{language}_source/"
                   execute "/data/web/.nvm/versions/node/v12.13.0/bin/r.js"
-                  execute "r.js", "-o #{release_path}/build.js dir=pub/static/frontend/#{theme}/#{language}/ baseUrl=#{release_path}/pub/static/frontend/#{theme}/#{language}_source/"
+                  # execute "r.js", "-o #{release_path}/build.js dir=pub/static/frontend/#{theme}/#{language}/ baseUrl=#{release_path}/pub/static/frontend/#{theme}/#{language}_source/"
                 end
               end
             end
