@@ -108,14 +108,19 @@ namespace :magento do
       on release_roles :all do
         deploy_themes = fetch(:magento_deploy_themes)
         deploy_languages = fetch(:magento_deploy_languages)
+        rjs_executable_path = fetch(:rjs_executable_path)
 
         within release_path do
           if test "[[ -f #{release_path}/build.js ]]"
             deploy_themes.each do |theme|
               if theme != 'Magento/backend'
                 deploy_languages.each do |language|
-                  # execute "mv", "#{release_path}/pub/static/frontend/#{theme}/#{language}/ #{release_path}/pub/static/frontend/#{theme}/#{language}_source/"
-                  execute "/data/web/.nvm/versions/node/v12.13.0/bin/r.js", "-o #{release_path}/build.js dir=pub/static/frontend/#{theme}/#{language}/ baseUrl=#{release_path}/pub/static/frontend/#{theme}/#{language}_source/"
+                  if test "[[ -f #{rjs_executable_path} ]]"
+                    execute "mv", "#{release_path}/pub/static/frontend/#{theme}/#{language}/ #{release_path}/pub/static/frontend/#{theme}/#{language}_source/"
+                    execute "#{rjs_executable_path}", "-o #{release_path}/build.js dir=pub/static/frontend/#{theme}/#{language}/ baseUrl=#{release_path}/pub/static/frontend/#{theme}/#{language}_source/"
+                  else
+                    puts "\e[0;31m    Warning: r.js executable not found, you can assign a custom path to rjs_executable_path. Skipping this step!\n\e[0m\n"
+                  end
                 end
               end
             end
