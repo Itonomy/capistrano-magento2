@@ -66,6 +66,7 @@ set :magento_deploy_clear_opcache, fetch(:magento_deploy_clear_opcache, true)
 set :magento_deploy_clear_opcache_additional_websites, fetch(:magento_deploy_clear_opcache_additional_websites, [])
 set :magento_deploy_clear_varnish, fetch(:magento_deploy_clear_varnish, true)
 set :composer_install_flags, fetch(:composer_install_flags, '--prefer-dist --no-interaction --no-progress --no-suggest');
+set :rjs_executable_path, fetch(:rjs_executable_path, 'r.js')
 
 # deploy targetting defaults
 set :magento_deploy_setup_role, fetch(:magento_deploy_setup_role, :all)
