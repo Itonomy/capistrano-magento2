@@ -1,9 +1,9 @@
 ##
  # Copyright © 2016 by David Alger. All rights reserved
- # 
+ #
  # Licensed under the Open Software License 3.0 (OSL-3.0)
  # See included LICENSE file for full text of OSL-3.0
- # 
+ #
  # http://davidalger.com/contact/
  ##
 
@@ -24,12 +24,12 @@ set :linked_files_touch, fetch(:linked_files_touch, []).push(
 set :linked_dirs, fetch(:linked_dirs, []).push(
   'pub/media',
   'pub/sitemaps',
-  'var/backups', 
-  'var/composer_home', 
-  'var/importexport', 
-  'var/import_history', 
+  'var/backups',
+  'var/composer_home',
+  'var/importexport',
+  'var/import_history',
   'var/log',
-  'var/session', 
+  'var/session',
   'var/tmp'
 )
 
@@ -79,3 +79,7 @@ set :magento_deploy_pending_format, fetch(
   :magento_deploy_pending_format,
   '--pretty="format:%C(yellow)%h %Cblue%>(12)%ai %Cgreen%<(7)%aN%Cred%d %Creset%s"'
 )
+
+# separate theme module
+set :theme_module_name, fetch(:theme_module_name, '')
+set :update_theme_module, fetch(:update_theme_module, false)
