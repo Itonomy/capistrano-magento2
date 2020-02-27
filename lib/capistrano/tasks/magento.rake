@@ -1,9 +1,9 @@
 ##
  # Copyright © 2016 by David Alger. All rights reserved
- # 
+ #
  # Licensed under the Open Software License 3.0 (OSL-3.0)
  # See included LICENSE file for full text of OSL-3.0
- # 
+ #
  # http://davidalger.com/contact/
  ##
 
@@ -140,7 +140,7 @@ namespace :magento do
         end
       end
     end
-    
+
     desc 'Clean Magento cache by types'
     task :clean do
       on cache_hosts do
@@ -149,7 +149,7 @@ namespace :magento do
         end
       end
     end
-    
+
     desc 'Enable Magento cache'
     task :enable do
       on cache_hosts do
@@ -158,7 +158,7 @@ namespace :magento do
         end
       end
     end
-    
+
     desc 'Disable Magento cache'
     task :disable do
       on cache_hosts do
@@ -167,7 +167,7 @@ namespace :magento do
         end
       end
     end
-    
+
     desc 'Check Magento cache enabled status'
     task :status do
       on cache_hosts do
@@ -209,7 +209,7 @@ namespace :magento do
           # TODO: Document use of :ban_pools and :varnish_cache_hosts in project config file
           next unless any? :ban_pools
           next unless any? :varnish_cache_hosts
-          
+
           within release_path do
             for pool in fetch(:ban_pools) do
               for cache_host in fetch(:varnish_cache_hosts) do
@@ -221,7 +221,7 @@ namespace :magento do
       end
     end
   end
-  
+
   namespace :composer do
     desc 'Run composer install'
     task :install => :auth_config do
@@ -243,6 +243,12 @@ namespace :magento do
 
           if test "[ -f #{release_path}/update/composer.json ]"   # can't count on this, but emit warning if not present
             execute :composer, "install #{composer_flags} -d ./update 2>&1"
+            theme_module_name = fetch(:theme_module_name)
+            if fetch(:update_theme_module) && !theme_module_name.empty
+              info "Updating theme module: #{theme_module_name}"
+              execute :composer, "update #{theme_module_name} -d ./update 2>&1"
+            end
+
           else
             puts "\e[0;31m    Warning: ./update/composer.json does not exist in repository!\n\e[0m\n"
           end
@@ -323,7 +329,7 @@ namespace :magento do
         end
       end
     end
-    
+
     namespace :db do
       desc 'Checks if database schema and/or data require upgrading'
       task :status do
@@ -341,12 +347,12 @@ namespace :magento do
           end
         end
       end
-      
+
       task :upgrade do
         on primary fetch(:magento_deploy_setup_role) do
           within release_path do
             db_status = capture :magento, 'setup:db:status --no-ansi', verbosity: Logger::INFO
-            
+
             if not db_status.to_s.include? 'All modules are up to date'
               execute :magento, 'setup:db-schema:upgrade'
               execute :magento, 'setup:db-data:upgrade'
@@ -354,7 +360,7 @@ namespace :magento do
           end
         end
       end
-      
+
       desc 'Upgrades data fixtures'
       task 'schema:upgrade' do
         on primary fetch(:magento_deploy_setup_role) do
@@ -363,7 +369,7 @@ namespace :magento do
           end
         end
       end
-      
+
       desc 'Upgrades database schema'
       task 'data:upgrade' do
         on primary fetch(:magento_deploy_setup_role) do
@@ -373,14 +379,14 @@ namespace :magento do
         end
       end
     end
-    
+
     desc 'Sets proper permissions on application'
     task :permissions do
       on release_roles :all do
         within release_path do
           execute :find, release_path, "-type d -exec chmod #{fetch(:magento_deploy_chmod_d).to_i} {} +"
           execute :find, release_path, "-type f -exec chmod #{fetch(:magento_deploy_chmod_f).to_i} {} +"
-          
+
           fetch(:magento_deploy_chmod_x).each() do |file|
             execute :chmod, "+x #{release_path}/#{file}"
           end
@@ -388,7 +394,7 @@ namespace :magento do
       end
       Rake::Task['magento:setup:permissions'].reenable  ## make task perpetually callable
     end
-    
+
     namespace :di do
       desc 'Runs dependency injection compilation routine'
       task :compile do
@@ -402,7 +408,7 @@ namespace :magento do
             else
               output = capture :magento, 'setup:di:compile --no-ansi', verbosity: Logger::INFO
             end
-            
+
             # 2.0.x never returns a non-zero exit code for errors, so manually check string
             # 2.1.x doesn't return a non-zero exit code for certain errors (see davidalger/capistrano-magento2#41)
             if output.to_s.include? 'Errors during compilation'
@@ -412,7 +418,7 @@ namespace :magento do
         end
       end
     end
-    
+
     namespace 'static-content' do
       desc 'Deploys static view files'
       task :deploy do
@@ -455,13 +461,13 @@ namespace :magento do
 
           # Run again with HTTPS env var set to 'on' to pre-generate secure versions of RequireJS configs
           deploy_flags = ['css', 'less', 'images', 'fonts', 'html', 'misc', 'html-minify']
-          
-          # As of Magento 2.1.3, it became necessary to exclude "--no-javacript" in order for secure versions of 
+
+          # As of Magento 2.1.3, it became necessary to exclude "--no-javacript" in order for secure versions of
           # RequireJs configs to be generated
           if _magento_version < Gem::Version.new('2.1.3')
             deploy_flags.push('javascript')
           end
-          
+
           deploy_flags = deploy_flags.join(' --no-').prepend(' --no-');
 
           # Magento 2.1.0 and earlier lack support for these flags, so generation of secure files requires full re-run
@@ -505,7 +511,7 @@ namespace :magento do
         end
       end
     end
-    
+
     desc 'Disable maintenance mode'
     task :disable do
       on release_roles :all do
