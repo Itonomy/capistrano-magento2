@@ -51,8 +51,13 @@ namespace :deploy do
     invoke 'magento:composer:install' if fetch(:magento_deploy_composer)
     invoke 'magento:setup:permissions'
 
+    invoke 'magento:setup:db:config'
+
+    invoke 'magento:magedbm:download' if (fetch(:magedbm_get_backup) || fetch(:magedbm_put_backup) || fetch(:magedbm_export_data) || fetch(:magedbm_import_data))
+
     if fetch(:magento_deploy_production)
       invoke 'magento:setup:static-content:deploy'
+      invoke 'magento:advanced-bundling:deploy' if fetch(:magento_deploy_advanced_bundling)
       invoke 'magento:setup:di:compile'
       invoke 'magento:composer:dump-autoload' if fetch(:magento_deploy_composer)
     end
@@ -62,7 +67,7 @@ namespace :deploy do
     if fetch(:magento_deploy_production)
       invoke 'magento:deploy:mode:production'
     end
-
+    invoke 'magento:pearl:compile' if fetch(:magento_deploy_pearl)
     invoke! 'magento:setup:permissions'
     invoke 'magento:maintenance:check'
     invoke 'magento:maintenance:enable' if fetch(:magento_deploy_maintenance)
@@ -82,6 +87,11 @@ namespace :deploy do
         end
       end
       invoke 'magento:app:config:import'
+      invoke 'magento:magedbm:put' if fetch(:magedbm_put_backup)
+      invoke 'magento:magedbm:get' if fetch(:magedbm_get_backup)
+      invoke 'magento:magedbm:import' if fetch(:magedbm_import_data)
+      invoke 'magento:magedbm:export' if fetch(:magedbm_export_data)
+      invoke 'magento:backups:db' if fetch(:magento_deploy_backup)
       invoke 'magento:setup:db:schema:upgrade'
       invoke 'magento:setup:db:data:upgrade'
     end
@@ -101,7 +111,9 @@ namespace :deploy do
 
   task :published do
     invoke 'magento:cache:flush'
-    invoke 'magento:cache:varnish:ban'
     invoke 'magento:maintenance:disable' if fetch(:magento_deploy_maintenance)
+    invoke 'magento:cache:opcache:clear' if fetch(:magento_deploy_clear_opcache)
+    invoke 'magento:cache:varnish:ban' if fetch(:magento_deploy_clear_varnish)
+    invoke 'magento:backups:gzip' if fetch(:magento_deploy_backup)
   end
 end

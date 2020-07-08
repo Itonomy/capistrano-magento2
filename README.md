@@ -138,6 +138,17 @@ Before you can use Capistrano to deploy, you must configure the `config/deploy.r
 | `:magento_deploy_chmod_x`      | `['bin/magento']` | Default list of files in release path to set executable bit on
 | `:magento_deploy_strategy`     | `nil`    | Can be `quick`, `standard` or `compact`
 
+### MageDBM2 Settings
+
+| setting                        | default | what it does
+| ------------------------------ | ------- | ---
+| `:magedbm_project_name`   | `''`  | The name of your project space/bucket *REQUIRED FOR OTHER OPTIONS*
+| `:magedbm_put_backup`   | `false`  | Perform a put on deploy using MageDBM2
+| `:magedbm_get_backup`   | `false`  | Perform a get on deploy using MageDBM2
+| `:magedbm_export_data`   | `false`  | Perform an anonymized sensitive data export using MageDBM2
+| `:magedbm_import_data`   | `false`  | Perform an anonymized sensitive data import using MageDBM2
+
+
 #### Example Usage
 
 Add a line similar to the following in `config/deploy.rb` to set a custom value on one of the above settings:

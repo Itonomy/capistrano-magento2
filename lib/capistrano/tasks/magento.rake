@@ -9,8 +9,126 @@
 
 include Capistrano::Magento2::Helpers
 include Capistrano::Magento2::Setup
-
 namespace :magento do
+  namespace :backups do
+      task :db do
+        on roles(:app) do
+          if test("[ -d #{current_path} ]")
+              within current_path do
+                 execute :php, 'bin/magento', 'setup:backup', '--db', '-n', '-q'
+              end
+          end
+        end
+      end
+
+      task :gzip do
+        on roles(:app) do
+          if test("[ -d #{current_path} ]")
+              within current_path do
+                 execute 'gzip', 'var/backups/`ls var/backups -t | head -1`'
+              end
+          end
+        end
+      end
+  end
+
+  namespace :magedbm do
+    desc 'Downloads Magedbm2 tool if it does not exist'
+    task :download do
+      on roles(:app) do
+        within release_path do
+          if test "[[ -f ~/.magedbm2/config.yml ]]"
+            if test "[[ -f magedbm2.phar ]]"
+            else
+              execute :wget, "https://itonomy.nl/downloads/magedbm2.phar"
+            end
+          else
+            puts "\e[0;31m    Warning: ~/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+          end
+        end
+      end
+    end
+
+    desc 'Export database via Magedbm2'
+    task :put do
+      on roles(:app) do
+        within release_path do
+          if test "[[ -f ~/.magedbm2/config.yml ]]"
+            execute :php, "magedbm2.phar", "put", "--root-dir=#{release_path}", fetch(:magedbm_project_name) + "-shop-data"
+          else
+            puts "\e[0;31m    Warning: ~/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+          end
+        end
+      end
+    end
+
+    desc 'Import database via Magedbm2'
+    task :get do
+      on roles(:app) do
+        within release_path do
+          if test "[[ -f ~/.magedbm2/config.yml ]]"
+            execute :php, "magedbm2.phar", "get", "--root-dir=#{release_path}", fetch(:magedbm_project_name) + "-shop-data"
+          else
+            puts "\e[0;31m    Warning: ~/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+          end
+        end
+      end
+    end
+
+    desc 'Export anonymized via Magedbm2'
+    task :export do
+      on roles(:app) do
+        within release_path do
+          if test "[[ -f ~/.magedbm2/config.yml ]]"
+            execute :php, "magedbm2.phar", "export", "--root-dir=#{release_path}", fetch(:magedbm_project_name) + "-customer-data"
+          else
+            puts "\e[0;31m    Warning: ~/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+          end
+        end
+      end
+    end
+
+    desc 'Import anonymized customer data via Magedbm2'
+    task :import do
+      on roles(:app) do
+        within release_path do
+          if test "[[ -f ~/.magedbm2/config.yml ]]"
+            execute :php, "magedbm2.phar", "import", "--root-dir=#{release_path}", fetch(:magedbm_project_name) + "-customer-data"
+          else
+            puts "\e[0;31m    Warning: ~/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
+          end
+        end
+      end
+    end
+  end
+
+  namespace 'advanced-bundling' do
+    desc 'Deploys advanced bundling'
+    task :deploy do
+      on release_roles :all do
+        deploy_themes = fetch(:magento_deploy_themes)
+        deploy_languages = fetch(:magento_deploy_languages)
+        rjs_executable_path = fetch(:rjs_executable_path)
+
+        within release_path do
+          if test "[[ -f #{release_path}/build.js ]]"
+            deploy_themes.each do |theme|
+              if theme != 'Magento/backend'
+                deploy_languages.each do |language|
+                  if test "[[ -f #{rjs_executable_path} ]]"
+                    execute "mv", "#{release_path}/pub/static/frontend/#{theme}/#{language}/ #{release_path}/pub/static/frontend/#{theme}/#{language}_source/"
+                    execute "#{rjs_executable_path}", "-o #{release_path}/build.js dir=pub/static/frontend/#{theme}/#{language}/ baseUrl=#{release_path}/pub/static/frontend/#{theme}/#{language}_source/"
+                  else
+                    puts "\e[0;31m    Warning: r.js executable not found, you can assign a custom path to rjs_executable_path. Skipping this step!\n\e[0m\n"
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
 
   namespace :app do
     namespace :config do
@@ -44,6 +162,7 @@ namespace :magento do
   end
 
   namespace :cache do
+
     desc 'Flush Magento cache storage'
     task :flush do
       on cache_hosts do
@@ -88,7 +207,31 @@ namespace :magento do
         end
       end
     end
-  
+
+    namespace :opcache do
+      desc 'clear opcache'
+      task :clear do
+        on release_roles :all do
+          within release_path do
+            code = "<?php opcache_reset(); ?>"
+            op_file_path = "#{release_path}/pub/opcache_clear.php";
+            upload!(StringIO.new(code), op_file_path)
+            execute :chmod, '765 "'+ op_file_path +'"'
+            additional_websites = fetch(:magento_deploy_clear_opcache_additional_websites)
+            opcache_urls = []
+            opcache_urls.push(capture(:magento, 'config:show web/unsecure/base_url', verbosity: Logger::INFO))
+            for additional_website in additional_websites do
+              opcache_urls.push(capture(:magento, "config:show --scope=websites --scope-code=#{additional_website} web/unsecure/base_url", verbosity: Logger::INFO))
+            end
+            for opcache_url in opcache_urls do
+              dir_sep = (opcache_url[-1] === '/' ? '' : '/')
+              execute :curl, %W{#{opcache_url}#{dir_sep}opcache_clear.php}
+            end
+          end
+        end
+      end
+    end
+
     namespace :varnish do
       # TODO: Document what the magento:cache:varnish:ban task is for and how to use it. See also magento/magento2#4106
       desc 'Add ban to Varnish for url(s)'
@@ -116,7 +259,7 @@ namespace :magento do
 
       on release_roles :all do
         within release_path do
-          composer_flags = '--prefer-dist --no-interaction'
+          composer_flags = fetch(:composer_install_flags)
 
           if fetch(:magento_deploy_no_dev)
             composer_flags += ' --no-dev'
@@ -251,6 +394,14 @@ namespace :magento do
           end
         end
       end
+
+      task :config do
+        on primary fetch(:all) do
+          within release_path do
+            execute :magento, 'app:config:import'
+          end
+        end
+      end
       
       task :upgrade do
         on primary fetch(:magento_deploy_setup_role) do
@@ -355,6 +506,24 @@ namespace :magento do
       end
     end
   end
+
+  namespace :pearl do
+    desc 'Compile pearl LESS + CSS assets'
+    task :compile do
+      on release_roles :all do
+        within release_path do
+          execute :magento, 'weltpixel:less:generate'
+
+          pearl_css_stores = fetch(:magento_deploy_pearl_stores)
+            if pearl_css_stores.count() > 0
+              pearl_css_stores.each do |store|
+                execute :magento, "weltpixel:css:generate --store=#{store}"
+              end
+            end
+          end
+        end
+      end
+    end
 
   namespace :maintenance do
     desc 'Enable maintenance mode'
