@@ -9,121 +9,34 @@
 
 include Capistrano::Magento2::Helpers
 include Capistrano::Magento2::Setup
+
 namespace :magento do
-  namespace :backups do
-      task :db do
-        on roles(:app) do
-          if test("[ -d #{current_path} ]")
-              within current_path do
-                 execute :php, 'bin/magento', 'setup:backup', '--db', '-n', '-q'
-              end
+
+  namespace :app do
+    namespace :config do
+      desc 'Create dump of application config'
+      task :dump do
+        on primary fetch(:magento_deploy_setup_role) do
+          within release_path do
+            execute :magento, 'app:config:dump'
           end
         end
       end
-
-      task :gzip do
-        on roles(:app) do
-          if test("[ -d #{current_path} ]")
-              within current_path do
-                 execute 'gzip', 'var/backups/`ls var/backups -t | head -1`'
-              end
+      
+      desc 'Import data from shared config files'
+      task :import do
+        on primary fetch(:magento_deploy_setup_role) do
+          within release_path do
+            execute :magento, 'app:config:import --no-interaction'
           end
         end
       end
-  end
-
-  namespace :magedbm do
-    desc 'Downloads Magedbm2 tool if it does not exist'
-    task :download do
-      on roles(:app) do
-        within release_path do
-          if test "[[ -f ~/.magedbm2/config.yml ]]"
-            if test "[[ -f magedbm2.phar ]]"
-            else
-              execute :wget, "https://itonomy.nl/downloads/magedbm2.phar"
-            end
-          else
-            puts "\e[0;31m    Warning: ~/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
-          end
-        end
-      end
-    end
-
-    desc 'Export database via Magedbm2'
-    task :put do
-      on roles(:app) do
-        within release_path do
-          if test "[[ -f ~/.magedbm2/config.yml ]]"
-            execute :php, "magedbm2.phar", "put", "--root-dir=#{release_path}", fetch(:magedbm_project_name) + "-shop-data"
-          else
-            puts "\e[0;31m    Warning: ~/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
-          end
-        end
-      end
-    end
-
-    desc 'Import database via Magedbm2'
-    task :get do
-      on roles(:app) do
-        within release_path do
-          if test "[[ -f ~/.magedbm2/config.yml ]]"
-            execute :php, "magedbm2.phar", "get", "--root-dir=#{release_path}", fetch(:magedbm_project_name) + "-shop-data"
-          else
-            puts "\e[0;31m    Warning: ~/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
-          end
-        end
-      end
-    end
-
-    desc 'Export anonymized via Magedbm2'
-    task :export do
-      on roles(:app) do
-        within release_path do
-          if test "[[ -f ~/.magedbm2/config.yml ]]"
-            execute :php, "magedbm2.phar", "export", "--root-dir=#{release_path}", fetch(:magedbm_project_name) + "-customer-data"
-          else
-            puts "\e[0;31m    Warning: ~/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
-          end
-        end
-      end
-    end
-
-    desc 'Import anonymized customer data via Magedbm2'
-    task :import do
-      on roles(:app) do
-        within release_path do
-          if test "[[ -f ~/.magedbm2/config.yml ]]"
-            execute :php, "magedbm2.phar", "import", "--root-dir=#{release_path}", fetch(:magedbm_project_name) + "-customer-data"
-          else
-            puts "\e[0;31m    Warning: ~/.magedbm2/config.yml does not exist, skipping this step!\n\e[0m\n"
-          end
-        end
-      end
-    end
-  end
-
-  namespace 'advanced-bundling' do
-    desc 'Deploys advanced bundling'
-    task :deploy do
-      on release_roles :all do
-        deploy_themes = fetch(:magento_deploy_themes)
-        deploy_languages = fetch(:magento_deploy_languages)
-        rjs_executable_path = fetch(:rjs_executable_path)
-
-        within release_path do
-          if test "[[ -f #{release_path}/build.js ]]"
-            deploy_themes.each do |theme|
-              if theme != 'Magento/backend'
-                deploy_languages.each do |language|
-                  if test "[[ -f #{rjs_executable_path} ]]"
-                    execute "mv", "#{release_path}/pub/static/frontend/#{theme}/#{language}/ #{release_path}/pub/static/frontend/#{theme}/#{language}_source/"
-                    execute "#{rjs_executable_path}", "-o #{release_path}/build.js dir=pub/static/frontend/#{theme}/#{language}/ baseUrl=#{release_path}/pub/static/frontend/#{theme}/#{language}_source/"
-                  else
-                    puts "\e[0;31m    Warning: r.js executable not found, you can assign a custom path to rjs_executable_path. Skipping this step!\n\e[0m\n"
-                  end
-                end
-              end
-            end
+      
+      desc 'Checks if config propagation requires update'
+      task :status do
+        on primary fetch(:magento_deploy_setup_role) do
+          within release_path do
+            execute :magento, 'app:config:status'
           end
         end
       end
@@ -131,7 +44,6 @@ namespace :magento do
   end
 
   namespace :cache do
-
     desc 'Flush Magento cache storage'
     task :flush do
       on cache_hosts do
@@ -176,31 +88,7 @@ namespace :magento do
         end
       end
     end
-
-    namespace :opcache do
-      desc 'clear opcache'
-      task :clear do
-        on release_roles :all do
-          within release_path do
-            code = "<?php opcache_reset(); ?>"
-            op_file_path = "#{release_path}/pub/opcache_clear.php";
-            upload!(StringIO.new(code), op_file_path)
-            execute :chmod, '765 "'+ op_file_path +'"'
-            additional_websites = fetch(:magento_deploy_clear_opcache_additional_websites)
-            opcache_urls = []
-            opcache_urls.push(capture(:magento, 'config:show web/unsecure/base_url', verbosity: Logger::INFO))
-            for additional_website in additional_websites do
-              opcache_urls.push(capture(:magento, "config:show --scope=websites --scope-code=#{additional_website} web/unsecure/base_url", verbosity: Logger::INFO))
-            end
-            for opcache_url in opcache_urls do
-              dir_sep = (opcache_url[-1] === '/' ? '' : '/')
-              execute :curl, %W{#{opcache_url}#{dir_sep}opcache_clear.php}
-            end
-          end
-        end
-      end
-    end
-
+  
     namespace :varnish do
       # TODO: Document what the magento:cache:varnish:ban task is for and how to use it. See also magento/magento2#4106
       desc 'Add ban to Varnish for url(s)'
@@ -228,7 +116,11 @@ namespace :magento do
 
       on release_roles :all do
         within release_path do
-          composer_flags = fetch(:composer_install_flags)
+          composer_flags = '--prefer-dist --no-interaction'
+
+          if fetch(:magento_deploy_no_dev)
+            composer_flags += ' --no-dev'
+          end
 
           if fetch(:magento_deploy_production)
             composer_flags += ' --optimize-autoloader'
@@ -236,16 +128,31 @@ namespace :magento do
 
           execute :composer, "install #{composer_flags} 2>&1"
 
-          if fetch(:magento_deploy_production) and magento_version >= Gem::Version.new('2.1')
-            composer_flags += ' --no-dev'
-            execute :composer, "install #{composer_flags} 2>&1" # removes require-dev components from prev command
-          end
-
           if test "[ -f #{release_path}/update/composer.json ]"   # can't count on this, but emit warning if not present
             execute :composer, "install #{composer_flags} -d ./update 2>&1"
           else
             puts "\e[0;31m    Warning: ./update/composer.json does not exist in repository!\n\e[0m\n"
           end
+        end
+      end
+    end
+
+    desc 'Run composer dump-autoload'
+    task 'dump-autoload' do
+
+      on release_roles :all do
+        within release_path do
+          composer_flags = '--no-interaction'
+
+          if fetch(:magento_deploy_no_dev)
+            composer_flags += ' --no-dev'
+          end
+
+          if fetch(:magento_deploy_production)
+            composer_flags += ' --optimize'
+          end
+
+          execute :composer, "dump-autoload #{composer_flags} 2>&1"
         end
       end
     end
@@ -266,13 +173,33 @@ namespace :magento do
   end
 
   namespace :deploy do
+    namespace :mode do
+      desc "Enables production mode"
+      task :production do
+        on release_roles(:all), in: :sequence, wait: 1 do
+          within release_path do
+            execute :magento, "deploy:mode:set production --skip-compilation"
+          end
+        end
+      end
+      
+      desc "Displays current application mode"
+      task :show do
+        on release_roles :all do
+          within release_path do
+            execute :magento, "deploy:mode:show"
+          end
+        end
+      end
+    end
+
     task :check do
       on release_roles :all do
         next unless any? :linked_files_touch
         on release_roles :all do |host|
           join_paths(shared_path, fetch(:linked_files_touch)).each do |file|
             unless test "[ -f #{file} ]"
-              execute "touch #{file}"
+              execute :touch, file
             end
           end
         end
@@ -287,8 +214,10 @@ namespace :magento do
           exit 1  # only need to check the repo once, so we immediately exit
         end
 
+        # Checking app/etc/env.php in shared_path vs release_path to support the zero-side-effect
+        # builds as implemented in the :detect_scd_config hook of deploy.rake
         unless test %Q[#{SSHKit.config.command_map[:php]} -r '
-              $cfg = include "#{release_path}/app/etc/env.php";
+              $cfg = include "#{shared_path}/app/etc/env.php";
               exit((int)!isset($cfg["install"]["date"]));
           ']
           error "\e[0;31mError on #{host}:\e[0m No environment configuration could be found." +
@@ -297,17 +226,6 @@ namespace :magento do
         end
       end
       exit 1 if is_err
-    end
-
-    task :local_config do
-      on release_roles :all do
-        if test "[ -f #{release_path}/app/etc/config.local.php ]"
-          info "The repository contains app/etc/config.local.php, removing from :linked_files list."
-          _linked_files = fetch(:linked_files, [])
-          _linked_files.delete('app/etc/config.local.php')
-          set :linked_files, _linked_files
-        end
-      end
     end
   end
 
@@ -325,19 +243,11 @@ namespace :magento do
     end
     
     namespace :db do
-      desc 'Checks if database schema and/or data require upgrading'
+      desc 'Checks if DB schema or data requires upgrade'
       task :status do
         on primary fetch(:magento_deploy_setup_role) do
           within release_path do
             execute :magento, 'setup:db:status'
-          end
-        end
-      end
-
-      task :config do
-        on primary fetch(:all) do
-          within release_path do
-            execute :magento, 'app:config:import'
           end
         end
       end
@@ -378,15 +288,14 @@ namespace :magento do
     task :permissions do
       on release_roles :all do
         within release_path do
-          execute :find, release_path, "-type d -exec chmod #{fetch(:magento_deploy_chmod_d).to_i} {} +"
-          execute :find, release_path, "-type f -exec chmod #{fetch(:magento_deploy_chmod_f).to_i} {} +"
+          execute :find, release_path, "-type d ! -perm #{fetch(:magento_deploy_chmod_d).to_i} -exec chmod #{fetch(:magento_deploy_chmod_d).to_i} {} +"
+          execute :find, release_path, "-type f ! -perm #{fetch(:magento_deploy_chmod_f).to_i} -exec chmod #{fetch(:magento_deploy_chmod_f).to_i} {} +"
           
           fetch(:magento_deploy_chmod_x).each() do |file|
             execute :chmod, "+x #{release_path}/#{file}"
           end
         end
       end
-      Rake::Task['magento:setup:permissions'].reenable  ## make task perpetually callable
     end
     
     namespace :di do
@@ -394,19 +303,8 @@ namespace :magento do
       task :compile do
         on release_roles :all do
           within release_path do
-            # Due to a bug in the single-tenant compiler released in 2.0 (see here for details: http://bit.ly/21eMPtt)
-            # we have to use multi-tenant currently. However, the multi-tenant is being dropped in 2.1 and is no longer
-            # present in the develop mainline, so we are testing for multi-tenant presence for long-term portability.
-            if test :magento, 'setup:di:compile-multi-tenant --help >/dev/null 2>&1'
-              output = capture :magento, 'setup:di:compile-multi-tenant --no-ansi', verbosity: Logger::INFO
-            else
-              output = capture :magento, 'setup:di:compile --no-ansi', verbosity: Logger::INFO
-            end
-            
-            # 2.0.x never returns a non-zero exit code for errors, so manually check string
-            # 2.1.x doesn't return a non-zero exit code for certain errors (see davidalger/capistrano-magento2#41)
-            if output.to_s.include? 'Errors during compilation'
-              raise Exception, 'DI compilation command execution failed'
+            with mage_mode: :production do
+              execute :magento, "setup:di:compile"
             end
           end
         end
@@ -417,84 +315,46 @@ namespace :magento do
       desc 'Deploys static view files'
       task :deploy do
         on release_roles :all do
-          _magento_version = magento_version
+          with mage_mode: :production do
+            deploy_languages = fetch(:magento_deploy_languages)
+            if deploy_languages.count() > 0
+              deploy_languages = deploy_languages.join(' ').prepend(' ')
+            else
+              deploy_languages = nil
+            end
 
-          deploy_themes = fetch(:magento_deploy_themes)
-          deploy_jobs = fetch(:magento_deploy_jobs)
+            deploy_themes = fetch(:magento_deploy_themes)
+            if deploy_themes.count() > 0
+              deploy_themes = deploy_themes.join(' -t ').prepend(' -t ')
+            else
+              deploy_themes = nil
+            end
 
-          if deploy_themes.count() > 0 and _magento_version >= Gem::Version.new('2.1.1')
-            deploy_themes = deploy_themes.join(' -t ').prepend(' -t ')
-          elsif deploy_themes.count() > 0
-            warn "\e[0;31mWarning: the :magento_deploy_themes setting is only supported in Magento 2.1.1 and later\e[0m"
-            deploy_themes = nil
-          else
-            deploy_themes = nil
+            deploy_jobs = fetch(:magento_deploy_jobs)
+            if deploy_jobs
+              deploy_jobs = " --jobs #{deploy_jobs}"
+            else
+              deploy_jobs = nil
+            end
+
+            # Static content compilation strategies that can be one of the following:
+            # quick (default), standard (like previous versions) or compact
+            compilation_strategy = fetch(:magento_deploy_strategy)
+            if compilation_strategy
+              compilation_strategy =  " -s #{compilation_strategy}"
+            end
+
+            within release_path do
+              execute :magento, "setup:static-content:deploy#{compilation_strategy}#{deploy_jobs}#{deploy_languages}#{deploy_themes}"
+            end
+
+            # Set the deployed_version of static content to ensure it matches across all hosts
+            upload!(StringIO.new(deployed_version), "#{release_path}/pub/static/deployed_version.txt")
           end
-
-          if deploy_jobs and _magento_version >= Gem::Version.new('2.1.1')
-            deploy_jobs = "--jobs #{deploy_jobs} "
-          elsif deploy_jobs
-            warn "\e[0;31mWarning: the :magento_deploy_jobs setting is only supported in Magento 2.1.1 and later\e[0m"
-            deploy_jobs = nil
-          else
-            deploy_jobs = nil
-          end
-
-          deploy_languages = [fetch(:magento_deploy_languages).join(' ')]
-
-          # Output is being checked for a success message because this command may easily fail due to customizations
-          # and 2.0.x CLI commands do not return error exit codes on failure. See magento/magento2#3060 for details.
-          within release_path do
-
-            # Workaround for 2.1 specific issue: https://github.com/magento/magento2/pull/6437
-            execute "touch #{release_path}/pub/static/deployed_version.txt"
-
-            # Generates all but the secure versions of RequireJS configs
-            deploy_languages.each {|lang| static_content_deploy "#{deploy_jobs}#{lang}#{deploy_themes}"}
-          end
-
-          # Run again with HTTPS env var set to 'on' to pre-generate secure versions of RequireJS configs
-          deploy_flags = ['css', 'less', 'images', 'fonts', 'html', 'misc', 'html-minify']
-          
-          # As of Magento 2.1.3, it became necessary to exclude "--no-javacript" in order for secure versions of 
-          # RequireJs configs to be generated
-          if _magento_version < Gem::Version.new('2.1.3')
-            deploy_flags.push('javascript')
-          end
-          
-          deploy_flags = deploy_flags.join(' --no-').prepend(' --no-');
-
-          # Magento 2.1.0 and earlier lack support for these flags, so generation of secure files requires full re-run
-          deploy_flags = nil if _magento_version <= Gem::Version.new('2.1.0')
-
-          within release_path do with(https: 'on') {
-            deploy_languages.each {|lang| static_content_deploy "#{deploy_jobs}#{lang}#{deploy_themes}#{deploy_flags}"}
-          } end
-
-          # Set the deployed_version of static content to ensure it matches across all hosts
-          upload!(StringIO.new(deployed_version), "#{release_path}/pub/static/deployed_version.txt")
         end
       end
     end
   end
-
-  namespace :pearl do
-    desc 'Compile pearl LESS + CSS assets'
-    task :compile do
-      on release_roles :all do
-        within release_path do
-          execute :magento, 'weltpixel:less:generate'
-
-          pearl_css_stores = fetch(:magento_deploy_pearl_stores)
-            if pearl_css_stores.count() > 0
-              pearl_css_stores.each do |store|
-                execute :magento, "weltpixel:css:generate --store=#{store}"
-              end
-            end
-          end
-        end
-      end
-    end
 
   namespace :maintenance do
     desc 'Enable maintenance mode'
@@ -505,7 +365,91 @@ namespace :magento do
         end
       end
     end
-    
+
+    # Internal command used to check if maintenance mode is neeeded and disable when zero-down deploy is
+    # possible or when maintenance mode was previously enabled on the deploy target
+    task :check do
+      on primary fetch(:magento_deploy_setup_role) do
+        maintenance_enabled = nil
+        disable_maintenance = false     # Do not disable maintenance mode in absence of positive release checks
+
+        if test "[ -d #{current_path} ]"
+          within current_path do
+            # If maintenance mode is already enabled, enable maintenance mode on new release and disable management to
+            # avoid disabling maintenance mode in the event it was manually enabled prior to deployment
+            info "Checking maintenance status..."
+            maintenance_status = capture :magento, 'maintenance:status', raise_on_non_zero_exit: false
+
+            if maintenance_status.to_s.include? 'maintenance mode is active'
+              info "Maintenance mode is currently active."
+              maintenance_enabled = true
+            else
+              info "Maintenance mode is currently inactive."
+              maintenance_enabled = false
+            end
+            info ""
+          end
+        end
+
+        # If maintenance is currently active, enable it on the newly deployed release
+        if maintenance_enabled
+          info "Enabling maintenance mode on new release to match active status of current release."
+          on release_roles :all do
+            within release_path do
+              execute :magento, 'maintenance:enable'
+            end
+          end
+          info ""
+        end
+
+        within release_path do
+          info "Checking database status..."
+          # Check setup:db:status output and if out-of-date do not disable maintenance mode
+          database_status = capture :magento, 'setup:db:status', raise_on_non_zero_exit: false
+          database_uptodate = false
+
+          if database_status.to_s.include? 'All modules are up to date'
+            info "All modules are up to date."
+            info ""
+            database_uptodate = true
+          else
+            puts "      #{database_status.gsub("\n", "\n      ").sub(" Run 'setup:upgrade' to update your DB schema and data.", "")}"
+          end
+
+          # Check app:config:status output and if out-of-date do not disable maintenance mode
+          info "Checking config status..."
+          config_status = capture :magento, 'app:config:status', raise_on_non_zero_exit: false
+          config_uptodate = false
+
+          if config_status.to_s.include? 'Config files are up to date'
+            info "Config files are up to date."
+            config_uptodate = true
+          else
+            puts "      #{config_status.gsub("\n", "\n      ").sub(" Run app:config:import or setup:upgrade command to synchronize configuration.", "")}"
+          end
+          info ""
+
+          # If both checks above reported up-to-date status checks disable maintenance mode
+          if database_uptodate and config_uptodate
+            disable_maintenance = true
+          end
+
+          if maintenance_enabled
+            info "Disabling maintenance mode management..."
+            info "Maintenance mode was already active prior to deploy."
+            set :magento_deploy_maintenance, false
+          elsif disable_maintenance
+            info "Disabling maintenance mode management..."
+            info "There are no database updates or config changes. This is a zero-down deployment."
+            set :magento_internal_zero_down_flag, true # Set internal flag to stop db schema/data upgrades from running
+            set :magento_deploy_maintenance, false     # Disable maintenance mode management since it is not neccessary
+          else
+            info "Maintenance mode usage will be enforced per :magento_deploy_maintenance (setting is #{fetch(:magento_deploy_maintenance).to_s})"
+          end
+        end
+      end
+    end
+
     desc 'Disable maintenance mode'
     task :disable do
       on release_roles :all do
