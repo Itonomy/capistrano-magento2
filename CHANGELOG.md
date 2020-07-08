@@ -1,5 +1,136 @@
 # Capistrano::Magento2 Change Log
 
+0.9.3
+=========
+
+* Updated to now specify `--non-interactive` flag on `app:config:import` so CLI command will not hang trying for user input.
+
+0.9.2
+=========
+
+* Fixed issue preventing use of `after` tasks on `magento:cache:flush` from being used to trigger service reloads at end of deployment ([issue #143](https://github.com/davidalger/capistrano-magento2/issues/143))
+* Updated to use DSL method `invoke!` to call iterant tasks ([see capistrano/capistrano/pull/1911](https://github.com/capistrano/capistrano/pull/1911)))
+
+0.9.1
+=========
+
+* Fixed regression in 0.9.0 where relying on the `-l` flag broke multilingual static content deployment ([issue #141](https://github.com/davidalger/capistrano-magento2/issues/141))
+
+0.9.0
+=========
+
+**Upgrade Notes:**
+
+As of this release only Magento 2.3 and later are supported and **support has been dropped for prior versions** which have long since reached their end-of-life. Moving forward versions past their EOL will no longer be supported by subsequent releases of this gem. Older versions of this gem may continue to be used to deploy older and EOL versions.
+
+If using a `Gemfile` with Bundler to lock versions of dependencies used for execution, the version lock on `capistrano` should be updated to `~>1.13` to match the minimal requirement of this release, otherwise `bundle update` will fail to update to version `0.9.0` of this gem. The following is recommended:
+
+```
+gem 'capistrano', '~> 3.14'
+gem 'capistrano-magento2', '~> 0.9'
+```
+
+If a capistrano version lock is present in a projects `deploy.rb` it will also need to be updated:
+
+```
+lock '~> 3.14'
+```
+
+**Change Summary:**
+
+* Dropped support for EOL versions of Magento and scrubbed all gated logic around legacy behaviors in 2.1.x and 2.2.x
+* Removed `magento:deploy:version_check` task and associated warning when attempting to deploy unsupported versions of Magento
+* Updated required version of `capistrano` to `~> 1.13` (>=1.13 and less than 2.0)
+* Resolved inability to use `--dry-run` flag ([issue #128](https://github.com/davidalger/capistrano-magento2/issues/128)) as made possible by the removal of all version related gating logic.
+* Dropped explicit default of `:magento_deploy_languages`; will now only be passed to `bin/magento` call when set in project configuration.
+* Updated zero-down deployment logic to rely on `app:config:status` to detect config changes rather than the md5sum of config.php in current and release directories.
+* Added `magento:app:config:status` to available commands for manual execution.
+* Fixes issue in 2.3.4 and later where app:config:import may fail if cache:flush is not run immediately prior ([issue #138](https://github.com/davidalger/capistrano-magento2/issues/138))
+
+0.8.9
+=========
+
+* Fixed issue with RabbitMQ settings caused by app:config:import running after setup-upgrade step vs prior to the database upgrades (which connects to RabbitMQ in recurring data upgrade scripts)
+
+0.8.8
+==========
+
+* Added support for zero-side-effect pipeline deployments when scopes/themes have been dumped to config.php
+
+0.8.7
+==========
+
+* Updated use of `touch` to run such that SSHKit prefixes may be used (PR #110)
+
+0.8.6
+==========
+
+* Fixed possible race condition in `magento:deploy:version_check` when `app/etc/env.php` resides on an NFS share
+
+0.8.5
+==========
+
+* Added ability to override flags sent to `composer install` to workaround issue in Magento 2.3 beta preventing deploy
+
+0.8.4
+==========
+
+* Disabled call to `magento:setup:db:schema:upgrade` when running a zero-down deployment
+* Disabled call to `magento:setup:db:data:upgrade` when running a zero-down deployment
+* Fixed possible race condition in `magento:deploy:mode:production` when `app/etc/env.php` resides on an NFS share
+
+0.8.3
+==========
+
+* Fixed regression failing deployment when `:magento_deploy_composer` is set to `false` (PR #106)
+
+0.8.2
+==========
+
+* Added `var/export` to default list of :linked_dirs to support bundled `dotmailer/dotmailer-magento2-extension` package
+
+0.8.1
+==========
+
+* Added `require 'capistrano/magento2/cachetool'` which may be used to enable flushing the php-opcache when [cachetool](http://gordalina.github.io/cachetool/) is installed on the server
+* Added `cachetool:opcache:status` and `cachetool:opcache:reset` commands (use `require 'capistrano/magento2/cachetool'` to enable them)
+* Fixed issue causing deployment to disable maintenance mode when manually enabled prior to deployment (issue #16)
+
+0.8.0
+==========
+
+* Added support for zero-down deployment (PR #104, issue #34)
+* Added call to "composer dump-autoload --no-dev --optimize" following DI compliation (issue #102)
+
+0.7.3
+==========
+
+* Optimized set permissions operation (PR #89)
+* Fixed `uninitialized constant Capistrano::Magento2::Setup::DateTime` error (PR #93, issue #92)
+
+0.7.2
+==========
+
+* Added support for Magento 2.2 [static content deploy strategies](http://bit.ly/2yhMvVv) (PR #85)
+* Added support for Magento 2.2 [shared application config files](http://bit.ly/2gF8Ouu) (issue #83)
+
+0.7.1
+==========
+
+* Fixed deploy routine so production mode is no longer enabled automatically when `:magento_deploy_production` is false
+* Fixed regression in multi-lingual deployment (reverted boxing workaround with 2.1.7 upper limit; release notes are wrong and the issue persists in 2.1.8)
+* Updated double run of static content deploy to only apply to versions prior to 2.1.8 (underling issue was resolved in 2.1.8)
+
+0.7.0
+==========
+
+* Added support for Magento 2.2.0 release candidates
+* Removed support for deployment of Magento versions older than 2.1.1
+* Updated and optimized static content deployment for upcoming Magento 2.2.0 release
+* Updated composer install routine; --no-dev is now used indiscriminately since Magento 2.1.1 and later support it; no more duplicate composer install commands (issue #76)
+* Updated multi-lingual site deployment workaround to apply only to versions 2.1.3 through 2.1.7 as per 2.1.8 release notes the underlying issue has been resolved (issue #72)
+* Added tasks to set production mode and show current mode (magento:deploy:mode:production and magento:deploy:mode:show)
+
 0.6.6
 ==========
 
