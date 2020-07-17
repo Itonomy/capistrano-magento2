@@ -110,7 +110,7 @@ namespace :magento do
       pdp_page_url = fetch(:magepack_advanced_bundling_product_url)
       on release_roles :all do
         within release_path do
-          execute "magepack generate --cms-url=\"#{cms_page_url}\" --category-url=\"#{cat_page_url}\" --product-url=\"#{pdp_page_url}\""
+          execute "cd #{release_path} && magepack generate --cms-url=\"#{cms_page_url}\" --category-url=\"#{cat_page_url}\" --product-url=\"#{pdp_page_url}\""
         end
       end
     end
@@ -119,7 +119,7 @@ namespace :magento do
     task :bundle do
       on release_roles :all do
         within release_path do
-          execute "magepack bundle"
+          execute "cd #{release_path} && magepack bundle"
         end
       end
     end
@@ -129,6 +129,7 @@ namespace :magento do
       on release_roles :all do
         within release_path do
           execute :magento, 'config:set dev/js/enable_magepack_js_bundling 1'
+          execute :magento, 'cache:flush'
         end
       end
     end
@@ -545,7 +546,7 @@ namespace :magento do
           exempt_ips = fetch(:magento_deploy_maintenance_allowed_ips)
           exempt_ip_string = ""
           if exempt_ips.any?
-            exempt_ips.each { |exempt_ip| exempt_ip_string += "--ip=#{exempt_ip} " }
+            exempt_ips.each { |exempt_ip| exempt_ip_string += " --ip=#{exempt_ip}" }
           end
           execute :magento, "maintenance:enable #{exempt_ip_string}"
         end
