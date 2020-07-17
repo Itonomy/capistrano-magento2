@@ -102,6 +102,47 @@ namespace :magento do
     end
   end
 
+  namespace 'magepack-advanced-bundling' do
+    desc 'Generate MagePack Advanced Bundling Config'
+    task :generate do
+      cms_page_url = fetch(:magepack_advanced_bundling_cms_url)
+      cat_page_url = fetch(:magepack_advanced_bundling_category_url)
+      pdp_page_url = fetch(:magepack_advanced_bundling_product_url)
+      on release_roles :all do
+        within release_path do
+          execute "magepack generate --cms-url=\"#{cms_page_url}\" --category-url=\"#{cat_page_url}\" --product-url=\"#{pdp_page_url}\""
+        end
+      end
+    end
+
+    desc 'Bundle Generated MagePack Advanced Bundling Config'
+    task :bundle do
+      on release_roles :all do
+        within release_path do
+          execute "magepack bundle"
+        end
+      end
+    end
+
+    desc 'Enable MagePack Advanced Bundling'
+    task :enable do
+      on release_roles :all do
+        within release_path do
+          execute :magento, 'config:set dev/js/enable_magepack_js_bundling 1'
+        end
+      end
+    end
+
+    desc 'Disable MagePack Advanced Bundling'
+    task :disable do
+      on release_roles :all do
+        within release_path do
+          execute :magento, 'config:set dev/js/enable_magepack_js_bundling 0'
+        end
+      end
+    end
+  end
+
   namespace 'advanced-bundling' do
     desc 'Deploys advanced bundling'
     task :deploy do
@@ -501,7 +542,12 @@ namespace :magento do
     task :enable do
       on release_roles :all do
         within release_path do
-          execute :magento, 'maintenance:enable'
+          exempt_ips = fetch(:magento_deploy_maintenance_allowed_ips)
+          exempt_ip_string = ""
+          if exempt_ips.any?
+            exempt_ips.each { |exempt_ip| exempt_ip_string += "--ip=#{exempt_ip} " }
+          end
+          execute :magento, "maintenance:enable #{exempt_ip_string}"
         end
       end
     end

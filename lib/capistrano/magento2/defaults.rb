@@ -56,6 +56,7 @@ set :magento_deploy_backup, fetch(:magento_deploy_backup, true)
 set :magento_deploy_confirm, fetch(:magento_deploy_confirm, [])
 set :magento_deploy_languages, fetch(:magento_deploy_languages, ['en_US'])
 set :magento_deploy_maintenance, fetch(:magento_deploy_maintenance, true)
+set :magento_deploy_maintenance_allowed_ips, fetch(:magento_deploy_maintenance_allowed_ips, []);
 set :magento_deploy_production, fetch(:magento_deploy_production, true)
 set :magento_deploy_themes, fetch(:magento_deploy_themes, [])
 set :magento_deploy_pearl, fetch(:magento_deploy_pearl, false)
@@ -65,8 +66,14 @@ set :magento_deploy_jobs, fetch(:magento_deploy_jobs, nil)      # this defaults 
 set :magento_deploy_clear_opcache, fetch(:magento_deploy_clear_opcache, true)
 set :magento_deploy_clear_opcache_additional_websites, fetch(:magento_deploy_clear_opcache_additional_websites, [])
 set :magento_deploy_clear_varnish, fetch(:magento_deploy_clear_varnish, true)
-set :composer_install_flags, fetch(:composer_install_flags, '--prefer-dist --no-interaction --no-progress --no-suggest');
+set :composer_install_flags, fetch(:composer_install_flags, '--prefer-dist --no-interaction --no-progress --no-suggest')
 set :rjs_executable_path, fetch(:rjs_executable_path, 'r.js')
+
+# deploy magepack advanced bundling defaults
+set :magepack_advanced_bundling, fetch(:magepack_advanced_bundling, false)
+set :magepack_advanced_bundling_cms_url, fetch(:magepack_advanced_bundling_cms_url, '')
+set :magepack_advanced_bundling_category_url, fetch(:magepack_advanced_bundling_category_url, '')
+set :magepack_advanced_bundling_product_url, fetch(:magepack_advanced_bundling_product_url, '')
 
 # deploy targetting defaults
 set :magento_deploy_setup_role, fetch(:magento_deploy_setup_role, :all)

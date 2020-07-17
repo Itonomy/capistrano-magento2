@@ -39,7 +39,6 @@ namespace :deploy do
 
     invoke 'magento:setup:permissions'
     invoke 'magento:maintenance:enable' if fetch(:magento_deploy_maintenance)
-
     on release_roles :all do
       if test "[ -f #{current_path}/bin/magento ]"
         within current_path do
@@ -66,6 +65,12 @@ namespace :deploy do
         end
       end
     end
+
+    invoke 'magento:magepack-advanced-bundling:disable' if fetch(:magepack_advanced_bundling)
+    invoke 'magento:cache:flush' if fetch(:magepack_advanced_bundling)
+    invoke 'magento:magepack-advanced-bundling:generate' if fetch(:magepack_advanced_bundling)
+    invoke 'magento:magepack-advanced-bundling:bundle' if fetch(:magepack_advanced_bundling)
+    invoke 'magento:magepack-advanced-bundling:enable' if fetch(:magepack_advanced_bundling)
   end
 
   task :published do
