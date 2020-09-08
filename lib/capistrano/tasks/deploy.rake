@@ -59,14 +59,13 @@ namespace :deploy do
         end
       end
     end
+  end
 
+  task :published do
     invoke 'magento:magepack-advanced-bundling:disable' if fetch(:magepack_advanced_bundling)
     invoke 'magento:magepack-advanced-bundling:generate' if fetch(:magepack_advanced_bundling)
     invoke 'magento:magepack-advanced-bundling:bundle' if fetch(:magepack_advanced_bundling)
     invoke 'magento:magepack-advanced-bundling:enable' if fetch(:magepack_advanced_bundling)
-  end
-
-  task :published do
     invoke 'magento:cache:flush'
     invoke 'magento:maintenance:disable' if fetch(:magento_deploy_maintenance)
     invoke 'magento:cache:opcache:clear' if fetch(:magento_deploy_clear_opcache)
