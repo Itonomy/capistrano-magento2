@@ -45,6 +45,7 @@ namespace :deploy do
     invoke 'magento:magedbm:import' if fetch(:magedbm_import_data)
     invoke 'magento:magedbm:export' if fetch(:magedbm_export_data)
     invoke 'magento:backups:db' if fetch(:magento_deploy_backup)
+    invoke 'magento:setup:upgrade'
     invoke 'magento:setup:db:schema:upgrade'
     invoke 'magento:setup:db:data:upgrade'
 
