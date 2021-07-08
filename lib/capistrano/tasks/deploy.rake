@@ -30,6 +30,8 @@ namespace :deploy do
     invoke 'magento:magedbm:download' if (fetch(:magedbm_get_backup) || fetch(:magedbm_put_backup) || fetch(:magedbm_export_data) || fetch(:magedbm_import_data))
 
     if fetch(:magento_deploy_production)
+      invoke 'yarn:install' if fetch(:magento_deploy_yarn)
+      invoke 'yarn:build' if fetch(:magento_deploy_yarn)
       invoke 'magento:setup:static-content:deploy'
       invoke 'magento:advanced-bundling:deploy' if fetch(:magento_deploy_advanced_bundling)
       invoke 'magento:setup:di:compile'
