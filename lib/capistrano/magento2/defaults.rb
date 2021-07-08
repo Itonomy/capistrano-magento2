@@ -75,6 +75,9 @@ set :magepack_advanced_bundling_cms_url, fetch(:magepack_advanced_bundling_cms_u
 set :magepack_advanced_bundling_category_url, fetch(:magepack_advanced_bundling_category_url, '')
 set :magepack_advanced_bundling_product_url, fetch(:magepack_advanced_bundling_product_url, '')
 
+# yarn on deployment defaults
+set :magento_deploy_yarn, fetch(:magento_deploy_yarn, false);
+
 # deploy targetting defaults
 set :magento_deploy_setup_role, fetch(:magento_deploy_setup_role, :all)
 set :magento_deploy_cache_shared, fetch(:magento_deploy_cache_shared, true)

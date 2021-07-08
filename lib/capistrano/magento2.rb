@@ -75,6 +75,7 @@ module Capistrano
 end
 
 load File.expand_path('../tasks/magento.rake', __FILE__)
+load File.expand_path('../tasks/yarn.rake', __FILE__)
 
 namespace :load do
   task :defaults do
